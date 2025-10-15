@@ -1,0 +1,231 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    padding: 20px;
+}
+h2 {
+    color: #333;
+}
+.panel {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+input[type="file"], input[type="text"] {
+    padding: 8px;
+    margin: 5px;
+    width: 250px;
+}
+#fileName {
+    font-size: 12px;
+}
+.FileContainer, .porcentajeContainer {
+    display: flex;
+    align-items: center;
+}
+button {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 15px;
+    margin: 5px;
+    cursor: pointer;
+}
+.SearchContainer {
+    display: inline-flex;
+    align-items: center;
+}
+#btnImage {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+}
+#btnImageSiguiente {
+    width: 16px;
+    height: 16px;
+    margin-right: 0;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+th, td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+th {
+    background-color: #e5e7eb;
+    text-align: center;
+}
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+td[contenteditable="true"], .codigoN {
+    background-color: #fff8d3;
+}
+.indice {
+    width: 10px;
+}
+.codigo, .precio1, .precio2 {
+    width: 110px;
+}
+.codigoN:hover, .precio1N:hover, .precio2N:hover {
+    transform: scale(1.2);
+    font-weight: bold;
+    text-shadow: 0 6px 6px rgba(0, 0, 0, 0.6);
+    border-radius: 5px;
+    background-color: #fff5c0;
+}
+.id {
+    width: 20px;
+}
+.fecha {
+    width: 100px;
+}
+.indice, .codigoN, .id, .fecha {
+    text-align: center;
+}
+#contador {
+    margin-top: 10px;
+    font-weight: bold;
+}
+#modal {
+    display:none;
+    position:fixed;
+    top:0;
+    bottom: 0;
+    left:0;
+    right: 0;
+    margin: auto;
+    width:70%;
+    background: rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+}
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    width: 70%;
+    position:relative;
+    box-shadow: 2px 2px 5px rgb(255 236 101);
+}
+.inputNumber {
+    padding: 8px;
+    margin: 5px;
+}
+.labelModal {
+    width: 80%;
+}
+#nuevoCodigo, #nuevoNombre, #nuevoPrecio1, #nuevoPrecio2 {
+    width: 80%;
+}
+.btnContainer {
+    display: flex;
+}
+
+#modalEliminar {
+    position: fixed;
+    /* top: 0; left: 0;
+    width: 100%; height: 100%; */
+    top:0;
+    bottom: 0;
+    left:0;
+    right: 0;
+    margin: auto;
+    width:70%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#containerEliminar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #222;
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 50%;
+    box-shadow: 0 0 15px #000;
+}
+#buscarEliminar {
+    width: 100%;
+}
+.contadorCoincidencias {
+    font-size: 13px;
+    color: #bbb;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+.resultadoEliminar {
+    background: #333;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    width: 80%;
+}
+.resultadoEliminar p {
+    width: fit-content;
+}
+.buscarContainer {
+    display: flex;
+    width: 80%;
+}
+.buscarContainer p {
+    margin: 0;
+}
+#buscarAnterior, #btnAnterior, #btnSiguiente, #buscarSiguiente {
+    padding: 0 10px;
+}
+#modalCargar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+#modalContenido {
+    background: #fff;
+    padding: 25px 30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    width: 300px;
+}
+
+#modalContenido h3 {
+    margin-bottom: 15px;
+}
+
+.boton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 10px;
+}
+
+.boton:hover {
+    background-color: #0056b3;
+}
+#fileInput {
+    display: none;
+}

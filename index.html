@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Articulos - Almacén Mily</title>
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="panel">
+  <h2>📦 Búsqueda de Artículos</h2>
+  <div class="FileContainer">
+    <img id="btnImage" src="icons/add-document.avif">
+    <label>Cargar base de datos (.CSV): </label>
+    <button id="btnCargar"
+          onmouseover="mostrarTooltip(event, TitulosList.btnCargar); event.stopPropagation();"
+          onmouseout="ocultarTooltip()">
+      <img id="btnImage" src="icons/add-document.avif">
+      Seleccionar archivo
+      <!-- <p id="buscarAnterior">Anterior</p> -->
+    </button>
+    <span id="fileName">Ningún archivo seleccionado</span>
+    <input type="file" id="fileInput" accept=".csv"><br>
+  </div>
+  <div class="porcentajeContainer">
+    <img id="btnImage" src="icons/porcentaje.avif">
+    <input type="text" id="porcentajeInput" maxlength="3" placeholder="Aplicar % Deudores" onmouseover="mostrarTooltip(event, TitulosList.porcentajeInput)" onmouseout="ocultarTooltip()">
+    <div class="chkContainer" onmouseover="mostrarTooltip(event, TitulosList.chkPorcentaje)" onmouseout="ocultarTooltip()">
+      <input type="checkbox" class="radio" id="porcentajeChk" onmouseover="mostrarTooltip(event, TitulosList.chkPorcentaje)" onmouseout="ocultarTooltip()">Mostrar porcentaje deudores
+    </div>
+  </div>
+  <div class="SearchContainer">
+    <img id="btnImage" src="icons/search.avif">
+    <input type="text" id="searchInput" placeholder="Buscar por nombre o ID" oninput="buscar()" onmouseover="mostrarTooltip(event, TitulosList.searchInput)" onmouseout="ocultarTooltip()">
+    <button id="btnAbrirModal" onclick="abrirModal()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioAgregar)" onmouseout="ocultarTooltip()"><img id="btnImage" src="icons/add-item.avif">Agregar artículo</button>
+    <button id="btnAbrirModalEliminar" onclick="abrirModalEliminar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEliminar)" onmouseout="ocultarTooltip()"><img id="btnImage" src="icons/borrar.avif">Eliminar artículo</button>
+    <button id="btnGuardar" onclick="guardarCSV()" onmouseover="mostrarTooltip(event, TitulosList.btnGuardar)" onmouseout="ocultarTooltip()"><img id="btnImage" src="icons/save.avif">Guardar cambios</button>
+  </div>
+  <div id="contador">Artículos cargados: 0</div>
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th class="indice">#</th>
+        <th class="codigo">Código Barra</th>
+        <th class="id">ID</th>
+        <th class="producto">Nombre</th>
+        <th class="precio1">Precio Venta</th>
+        <th class="precio2">Precio Deudor</th>
+        <th class="fecha">Actualizado</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+<!-- Modal -->
+<div id="modal" aria-label="Modal para agregar artículo">
+  <div id="container" onmouseover="mostrarTooltip(event, TitulosList.modales)" onmouseout="ocultarTooltip()">
+    <h3>Agregar Artículo</h3>
+    <label class="labelModal">Código Barra:</label>
+    <input class="inputNumber" type="number" id="nuevoCodigo" maxlength="13" pattern="\d{0,13}" onkeypress="if(this.value.length==13) return false;" onmouseover="mostrarTooltip(event, TitulosList.codigo); event.stopPropagation();" onmouseout="ocultarTooltip()">
+    <label class="labelModal">Nombre Producto:</label>
+    <input type="text" id="nuevoNombre" onmouseover="mostrarTooltip(event, TitulosList.nombre); event.stopPropagation();" onmouseout="ocultarTooltip()">
+    <label class="labelModal">Precio Venta:</label>
+    <input class="inputNumber" type="text" id="nuevoPrecio1" maxlength="6" onfocus="formatearCampo(this)" onkeypress="if(this.value.length==7) return false;" onmouseover="mostrarTooltip(event, TitulosList.precio1); event.stopPropagation();" onmouseout="ocultarTooltip()">
+    <label class="labelModal">Precio Deudor:</label>
+    <input class="inputNumber" type="text" id="nuevoPrecio2" maxlength="6" onkeypress="if(this.value.length==7) return false;" onmouseover="mostrarTooltip(event, TitulosList.precio2); event.stopPropagation();" onmouseout="ocultarTooltip()"><br>
+    <div class="btnContainer">
+      <button id="btnAgregarArticulo" onclick="agregarArticulo()" onkeypress="Javascript: if (event.keyCode==13) agregarArticulo();" onmouseover="mostrarTooltip(event, TitulosList.btnAgregar); event.stopPropagation();" onmouseout="ocultarTooltip()"><img id="btnImage" src="icons/ok.avif">Agregar</button>
+      <button id="btnLimpiar" onmouseover="mostrarTooltip(event, TitulosList.btnLimpiar); event.stopPropagation();" onmouseout="ocultarTooltip()">
+        <img id="btnImage" src="icons/limpiar.avif">Limpiar
+      </button>
+      <button onclick="cerrarModal()" onmouseover="mostrarTooltip(event, TitulosList.btnCancelar); event.stopPropagation();" onmouseout="ocultarTooltip()"><img id="btnImage" src="icons/cancel.avif">Cancelar</button>
+    </div>
+  </div>
+</div>
+<!-- 🗑️ Modal Eliminar Artículo -->
+<div id="modalEliminar" aria-label="Modal para eliminar artículo" style="display:none;">
+  <div id="containerEliminar" onmouseover="mostrarTooltip(event, TitulosList.modales)" onmouseout="ocultarTooltip()">
+    <h3>Eliminar Artículo</h3>
+
+    <!-- 🔍 Campo de búsqueda -->
+    <label class="labelModal">Buscar por ID o NOMBRE:</label>
+    <div class="buscarContainer">
+      <input type="text" id="buscarEliminar" onkeyup="buscarArticuloEliminar()" 
+            placeholder="Ej: 102 o Pan Lactal"
+            onmouseover="mostrarTooltip(event, TitulosList.searchInput); event.stopPropagation();"
+            onmouseout="ocultarTooltip()">
+      <button id="btnAnterior" onclick="mostrarAnteriorCoincidencia()"
+            onmouseover="mostrarTooltip(event, TitulosList.btnAnterior); event.stopPropagation();"
+            onmouseout="ocultarTooltip()">
+        <img id="btnImageSiguiente" src="icons/atras.avif">
+        <!-- <p id="buscarAnterior">Anterior</p> -->
+      </button>
+      <button id="btnSiguiente" onclick="mostrarSiguienteCoincidencia()"
+            onmouseover="mostrarTooltip(event, TitulosList.btnSiguiente); event.stopPropagation();"
+            onmouseout="ocultarTooltip()">
+        <!-- <p id="buscarSiguiente">Siguiente</p> -->
+        <img id="btnImageSiguiente" src="icons/adelante.avif">
+      </button>
+    </div>
+    <!-- 🔢 Contador de coincidencias -->
+    <p id="contadorCoincidencias" class="contadorCoincidencias">0 coincidencias</p>
+
+    <!-- 📋 Resultado -->
+    <div id="resultadoEliminar" class="resultadoEliminar" onmouseover="mostrarTooltip(event, TitulosList.resultadoEliminar); event.stopPropagation();" onmouseout="ocultarTooltip()">
+      <p id="codigoEncontradoP"><b>Id:</b> <span id="codigoEncontrado">-</span></p>
+      <p id="nombreEncontradoP"><b>Nombre:</b> <span id="nombreEncontrado">-</span></p>
+      <p id="precioEncontradoP"><b>Precio Venta:</b> <span id="precioEncontrado">-</span></p>
+      <p id="precioEncontrado2P"><b>Precio Deudor:</b> <span id="precioEncontrado2">-</span></p>
+    </div>
+
+    <!-- 🧭 Botones -->
+    <div class="btnContainer">
+      <button id="btnEliminar" onclick="eliminarArticuloSeleccionado()" disabled
+              onmouseover="mostrarTooltip(event, TitulosList.btnEliminar); event.stopPropagation();"
+              onmouseout="ocultarTooltip()">
+        <img id="btnImage" src="icons/borrar.avif">Eliminar
+      </button>
+      <button onclick="cerrarModalEliminar()" 
+              onmouseover="mostrarTooltip(event, TitulosList.btnCancelar); event.stopPropagation();"
+              onmouseout="ocultarTooltip()">
+        <img id="btnImage" src="icons/cancel.avif">Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Modal para cargar archivo -->
+<div id="modalCargar">
+  <div id="modalContenido">
+    <h3>📂 Seleccionar archivo</h3>
+    <p>Seleccione el archivo CSV que desea cargar.</p>
+    <button class="boton" id="btnAceptar">Aceptar</button>
+    <button class="boton" id="btnCancelar" style="background-color:#6c757d;">Cancelar</button>
+  </div>
+</div>
+<script src="script.js"></script>
+<script>
+  const fileInput = document.querySelector('#fileInput');
+  const boton = document.querySelector("#btnCargar");
+  const btnAceptar = document.getElementById("btnAceptar");
+  const btnCancelar = document.getElementById("btnCancelar");
+  const csvGuardado = localStorage.getItem("csvData");
+
+  async function cargarCSV() {
+    const OriginalFile = localStorage.getItem(archivoOriginal);
+    // Ver si ya hay datos guardados en localStorage
+    if (csvGuardado) {
+      if (!OriginalFile) {
+          console.log(`no existe: ${archivoOriginal}`);
+          localStorage.removeItem(csvDatos);
+      } else {
+        console.log(`existe: ${archivoOriginal}`);
+      }
+      procesarCSV(csvGuardado);
+      fileName2.textContent = localStorage.getItem("csvName") || 'Lista_Precios.csv';
+      observer.disconnect(); // Detener la observación
+      return;
+    }
+
+    fileInput.addEventListener('change', e => {
+      console.log('estamos aca');
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const texto = ev.target.result;
+        localStorage.setItem("csvData", texto); // Guardar para uso offline futuro
+        localStorage.setItem("csvName", 'Lista_Precios.csv'); // Guardar para uso offline futuro
+        // si no existen los datos del archivo original en localstorage, los creamos
+        if (!OriginalFile) {
+          console.log(`no existe: ${archivoOriginal}`);
+          localStorage.setItem(archivoOriginal, texto); // Guardar para uso offline futuro
+        }
+        fileName2.textContent = fileInput.files[0].name;
+        nombre = fileName2.textContent;
+        procesarCSV(texto);
+        console.log("📦 CSV cargado y guardado localmente");
+      };
+      reader.readAsText(file, 'UTF-8');
+    });
+  }
+
+  // Para probar desde cero
+  function borrarCSVGuardado() {
+    localStorage.removeItem("csvData");
+    alert("CSV local borrado. Se pedirá cargarlo de nuevo al iniciar.");
+  }
+
+  // Ejecutar automáticamente al cargar la página
+  document.addEventListener("DOMContentLoaded", function() {
+    if (csvGuardado) {
+      segundos = 2;
+      mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargado", segundos, cargarCSV);
+    } else {
+      segundos = 2;
+      if (btnAceptar.click) {
+        mostrarMensajeConTimer(`ℹ️ No hay ninguna base de datos cargada.!<br>Por favor espere: ${segundos} segundos y seleccione un archivo para abrir.!`, "modalCargando", segundos, cargarCSV);
+      }
+    }
+  });
+  // Cuando el usuario hace clic en "Aceptar"
+  btnAceptar.addEventListener("click", () => {
+    modalCargar.style.display = "none"; // Cierra el modal
+    fileInput.click(); // ✅ Abre el selector de archivos
+    //fileName2.addEventListener('change', e => {
+      //mostrarMensajeOK(`📦 Archivo CSV: ${nombre} cargado y guardado localmente`, "modalCargando");
+    //});
+    //mostrarMensajeOK(`📦 Archivo CSV: ${nombre} cargado y guardado localmente`, "modalCargando");
+  });
+
+  // Si el usuario cancela
+  btnCancelar.addEventListener("click", () => {
+    modalCargar.style.display = "none"; // Cierra el modal sin hacer nada
+  });
+</script>
+</body>
+</html>
