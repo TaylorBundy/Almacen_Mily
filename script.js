@@ -3,6 +3,8 @@ let headers = [];
 let titulo = null;
 let contador = null;
 let usuarioActivoEnModal = false;
+let cantidadActual = null;
+let cantidadOriginal = null;
 const items = document.getElementById('contador');
 const inputSearch = document.getElementById('searchInput');
 const btnAbrirModal = document.getElementById('btnAbrirModal');
@@ -444,6 +446,7 @@ function procesarCSV(texto) {
     return obj;
   });
   mostrarTabla(datos);
+  cantidadActual = datos.length;
 }
 // 📋 Mostrar tabla
 function mostrarTabla(lista) {
@@ -1319,7 +1322,6 @@ function obtenerFechaMasRecienteFormatoCSV(csvTexto, origenFecha) {
       //console.log(`Fechas Actuales: ${valor}`);
       FechasActuales.push(valor);
     }
-    console.log(valor);
     if (!valor) return null;
 
     const [dia, mes, año] = valor.split('/').map(Number);
@@ -1393,7 +1395,7 @@ function obtenerFechaMasRecienteFormatoJSON2(jsonData, origenFecha) {
 // }
 
 function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
-  console.log(jsonData);
+  //console.log(jsonData);
   if (!Array.isArray(jsonData) || jsonData.length === 0) return null;
 
   const fechas = [];
@@ -1481,13 +1483,17 @@ function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
 // cargado en localStorage con nombre "csvOriginal"
 // contiene los mismos datos que localStorage con nombre "csvData"
 setTimeout(() => {
+  contador = items.textContent.split(': ')[1];
   if (esLocal()) {
     obtenerFechaMasRecienteFormatoCSV(csvData, 'actuales');
     obtenerFechaMasRecienteFormatoCSV(csvDataOriginal, 'original');
+    const lineas = csvDataOriginal.split(/\r?\n/).filter(l => l.trim() !== '');
+    cantidadOriginal = lineas.length - 1;
     //console.log(csvData);
   } else {
     const datosActuales = localStorage.getItem("jsonData");
     const datosOriginales = localStorage.getItem("jsonOriginal");
+    cantidadOriginal = JSON.parse(datosOriginales).length;
     //const lista = JSON.parse(datosOriginales);
     obtenerFechaMasRecienteFormatoJSON(JSON.parse(datosActuales), 'actuales');
     obtenerFechaMasRecienteFormatoJSON(JSON.parse(datosOriginales), 'original');
@@ -1497,21 +1503,27 @@ setTimeout(() => {
   }
   const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
   console.log(cambios);
+  console.log(datos.length);
+  console.log(cantidadActual);
+  console.log(cantidadOriginal);
+  console.log(contador);
   //console.log(`FechasViejas: ${FechasViejas}`);
   //console.log(`FechasActuales: ${FechasActuales}`);
+  if (cantidadOriginal !== cantidadActual) {
   const originalesDiferentes = cambios.map(c => c.original);
   const actualesDiferentes = cambios.map(c => c.nueva);
-  if (originalesDiferentes.length > 0) {
-    if (esLocal()) {
-      mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en: ${archivoOriginal} procedente del archivo original: ${Icons.csv}${nombre}<br>Son más antiguos que los datos de: ${csvDatos} almacenados en LocalStorage`, 'datosOriginales');
-      localStorage.setItem(archivoOriginal, csvData);
+    if (originalesDiferentes.length > 0 || cantidadActual !== cantidadOriginal) {
+      if (esLocal()) {
+        mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en: ${archivoOriginal} procedente del archivo original: ${Icons.csv}${nombre}<br>Son más antiguos que los datos de: ${csvDatos} almacenados en LocalStorage`, 'datosOriginales');
+        localStorage.setItem(archivoOriginal, csvData);
+      } else {
+        const datosActuales = localStorage.getItem("jsonData");
+        mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en LocalStorage procedentes del archivo Original "Lista_Precios.json"<br>Son más antiguos que los datos almacenados en LocalStorage obtenidos de la tabla de artículos`, 'datosOriginales');
+        localStorage.setItem('jsonOriginal', datosActuales);
+      }
     } else {
-      const datosActuales = localStorage.getItem("jsonData");
-      mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en LocalStorage procedentes del archivo Original "Lista_Precios.json"<br>Son más antiguos que los datos almacenados en LocalStorage obtenidos de la tabla de artículos`, 'datosOriginales');
-      localStorage.setItem('jsonOriginal', datosActuales);
+      console.log('son iguales');
     }
-  } else {
-    console.log('son iguales');
   }
 }, 5000);
 // 🔹 Función para asignar un tooltip único a un elemento

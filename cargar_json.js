@@ -19,6 +19,7 @@ async function cargarJSON() {
         mostrarTabla(datos);
         localStorage.setItem('jsonData', JSON.stringify(datos));
         localStorage.setItem('jsonOriginal', JSON.stringify(datos));
+        cantidadOriginal = datos.length;
         return datos; // opcional, si necesitas usar los datos luego
     } catch (err) {
         console.error(err);
@@ -34,6 +35,7 @@ function cargarDesdeLocalStorage() {
         datos = lista;
         if (Array.isArray(lista) && lista.length > 0) {
           mostrarTabla(datos);
+          cantidadActual = datos.length;
           console.log(`✅ Datos cargados desde localStorage (${lista.length} artículos)`);
         } else {
           console.warn("⚠️ No se encontraron artículos válidos en localStorage.");
