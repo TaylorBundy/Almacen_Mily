@@ -1424,6 +1424,7 @@ setTimeout(() => {
     //console.log()
   }
   const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
+  console.log(cambios);
   const originalesDiferentes = cambios.map(c => c.original);
   const actualesDiferentes = cambios.map(c => c.nueva);
   if (originalesDiferentes.length > 0) {
