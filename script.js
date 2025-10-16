@@ -223,7 +223,7 @@ function mostrarMensajeConTimer(texto, origen = '', segundos = 3, callback = nul
     msg.style.background = "#4caf50";
   } else if (origen === 'error') {
     msg.style.background = "#e53935";
-  } else if (origen === 'modalCargando' || origen === 'modalCargado') {
+  } else if (origen === 'modalCargando' || origen === 'modalCargado' || origen === 'modalCargandoOnline' || origen === 'modalCargadoOnline') {
     msg.style.background = "#2196f3";
   } else {
     msg.style.background = "#607d8b";
@@ -253,6 +253,10 @@ function mostrarMensajeConTimer(texto, origen = '', segundos = 3, callback = nul
         }
         if (origen === 'modalCargado') {
           mostrarMensajeOK(`${Icons.carpeta} Archivo CSV: ${nombre} cargado con exito.!`, origen);
+          detenerCSVTemporizador();
+        }
+        if (origen === 'modalCargandoOnline' || origen === 'modalCargadoOnline') {
+          mostrarMensajeOK(`${Icons.carpeta} Archivo JSON: ${nombre} cargado con exito.!`, origen);
           detenerCSVTemporizador();
         }
         if (typeof callback === "function") callback();

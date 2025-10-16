@@ -238,6 +238,7 @@
       console.log("Ejecutando desde un servidor (GitHub Pages)");
       desdeDonde = 'web';
       const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
+      const OriginalFile = localStorage.getItem(archivoOriginal);
       //const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
       //const csvGuardado = JSON.parse(localStorage.getItem('csvData') || 'null');
       //cargarJSON();
@@ -246,16 +247,13 @@
         //if (desdeDonde === 'local') {
           //mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargado", segundos, cargarCSV);
         //} else {
-        mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargado", segundos, cargarJSON);
+        mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargadoOnline", segundos, cargarDesdeLocalStorage);
         //}
       } else {
         segundos = 2;
-        //if (desdeDonde === 'local') {
-          //if (btnAceptar.click) {
-            //mostrarMensajeConTimer(`ℹ️ No hay ninguna base de datos cargada.!<br>Por favor espere: ${segundos} segundos y seleccione un archivo para abrir.!`, "modalCargando", segundos, cargarCSV);
-          //}
-        //} else {
-        mostrarMensajeConTimer(`ℹ️ No hay ninguna base de datos cargada.!<br>Por favor espere: ${segundos} segundos mientras se carga el archivo del servidor.!`, "modalCargando", segundos, cargarJSON);
+        //if (!OriginalFile) {
+        mostrarMensajeConTimer(`ℹ️ No hay ninguna base de datos cargada.!<br>Por favor espere: ${segundos} segundos mientras se carga el archivo del servidor.!`, "modalCargandoOnline", segundos, cargarJSON);
+        //}
         //}
       }
     };

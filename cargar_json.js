@@ -29,10 +29,11 @@ async function cargarJSON() {
 
         // Llamamos a mostrarTabla con los datos adaptados
         mostrarTabla(datos);
-        console.log(datos);
+        //console.log(datos);
         //localStorage.setItem('pruebaonline', datos);
-        localStorage.setItem('pruebaonline', JSON.stringify(datos));
+        //localStorage.setItem('pruebaonline', JSON.stringify(datos));
         localStorage.setItem('csvData', JSON.stringify(datos));
+        localStorage.setItem('csvOriginal', JSON.stringify(datos));
 
         return datos; // opcional, si necesitas usar los datos luego
     } catch (err) {
@@ -40,3 +41,23 @@ async function cargarJSON() {
         return [];
     }
 }
+
+function cargarDesdeLocalStorage() {
+    const datosGuardados = localStorage.getItem("csvData");
+  
+    if (datosGuardados) {
+      try {
+        const lista = JSON.parse(datosGuardados);
+        if (Array.isArray(lista) && lista.length > 0) {
+          mostrarTabla(lista);
+          console.log(`✅ Datos cargados desde localStorage (${lista.length} artículos)`);
+        } else {
+          console.warn("⚠️ No se encontraron artículos válidos en localStorage.");
+        }
+      } catch (e) {
+        console.error("❌ Error al leer los datos del localStorage:", e);
+      }
+    } else {
+      console.log("ℹ️ No hay datos guardados en localStorage.");
+    }
+  }
