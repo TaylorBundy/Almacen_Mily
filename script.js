@@ -39,24 +39,42 @@ let FechasViejas = [];
 let FechasActuales = [];
 let segundos = 0;
 let origen = null;
+let estadoTooltip = false;
+let mensaje = null;
 const modal = document.getElementById('modal');
 const modalCargar = document.getElementById("modalCargar");
 const modalEliminar = document.getElementById('modalEliminar');
+const containerEliminar = document.getElementById('containerEliminar');
 const contador2 = document.getElementById("contadorCoincidencias");
 const btnEliminar = document.getElementById("btnEliminar");
 const btnSiguiente = document.getElementById("btnSiguiente");
 const btnAnterior = document.getElementById("btnAnterior");
-const id = document.getElementById("codigoEncontrado");
-const id2 = document.getElementById("codigoEncontradoP");
-const nombreEncontrado = document.getElementById("nombreEncontrado");
-const nombreEncontradoP = document.getElementById("nombreEncontradoP");
-const precioEncontrado = document.getElementById("precioEncontrado");
-const precioEncontradoP = document.getElementById("precioEncontradoP");
-const precioEncontrado2 = document.getElementById("precioEncontrado2");
-const precioEncontrado2P = document.getElementById("precioEncontrado2P");
-const resultadoEliminar = document.getElementById("resultadoEliminar");
+let id = document.getElementById("codigoEncontrado");
+let id2 = document.getElementById("codigoEncontradoP");
+//const
+let nombreEncontrado = document.getElementById("nombreEncontrado");
+//const
+let nombreEncontradoP = document.getElementById("nombreEncontradoP");
+//const
+let precioEncontrado = document.getElementById("precioEncontrado");
+//const
+let precioEncontradoP = document.getElementById("precioEncontradoP");
+//const
+let precioEncontrado2 = document.getElementById("precioEncontrado2");
+//const
+let precioEncontrado2P = document.getElementById("precioEncontrado2P");
+//const
+let resultadoEliminar = document.getElementById("resultadoEliminar");
+let elementos = [id, id2, nombreEncontrado, nombreEncontradoP, 
+      precioEncontrado, precioEncontradoP, 
+      precioEncontrado2, precioEncontrado2P, 
+      resultadoEliminar];
 const customButton = document.getElementById("btnCargar");
 const fileName2 = document.getElementById("fileName");
+let timeoutMostrarContador = null;
+let intervalContador = null;
+const contadorCerrar = document.getElementById("contadorCerrar");
+let segundosRestantes = null;
 
 const Icons = {
   csv: "📦",
@@ -80,7 +98,8 @@ const Icons = {
   question: "❓",
   money: "💰",
   money2: "💲",
-  cargando: "⌛"
+  cargando: "⌛",
+  reloj: "🕙"
 };
 //  🧠 Títulos para tooltips
 const TitulosList = {
@@ -102,6 +121,7 @@ const TitulosList = {
   btnAnterior: `${Icons.anterior} Mostrar artículo anterior.!`,
   btnSiguiente: `${Icons.siguiente} Mostrar artículo siguiente.!`,
   resultadoEliminar: "Artículo encontrado para eliminar.\nVerifique que sea el correcto.",
+  modalEliminarSinData: `${Icons.advertencia} Acá se van a mostrar el artículo que busca para eliminar.!\nVerifique el artículo antes de confirmar la eliminación.!`,
   modales: `${Icons.salir} Precione "ESC" para cerrar este cuadro.`
 };
 // 🧠 Tooltip flotante reutilizable
@@ -123,13 +143,22 @@ function mostrarTooltip(e, texto) {
   tooltip.style.left = (e.clientX + 10) + 'px';
   tooltip.style.top = (e.clientY + 10) + 'px';
   tooltip.style.display = 'block';
+  estadoTooltip = true;
   setTimeout(() => {
     ocultarTooltip();
   }, 5000);
 }
 // ✖️ Ocultar tooltip
-function ocultarTooltip() {
-  tooltip.style.display = 'none';
+function ocultarTooltip(tiempoOcultar) {
+  if (tiempoOcultar === null) {
+    console.log('nada');
+  }
+  setTimeout(() => {
+    estadoTooltip = false;
+    tooltip.style.display = 'none';
+  }, tiempoOcultar);
+  //tooltip.style.display = 'none';
+  //estadoTooltip = false;
 }
 // 🟢 Muestra un mensaje visual de confirmación (opcional)
 function mostrarMensajeOK(texto, origen) {
@@ -272,6 +301,8 @@ function recalcularPrecios() {
 function esPrecioValido(valor) {
   return regexPrecio.test(valor);
 }
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', cargarJSON);
 // Deshabilitar búsqueda y botones si no hay datos
 window.onload = function() {
   contador = items.textContent.split(': ')[1];
@@ -314,8 +345,13 @@ function Titulos(id) {
       item.addEventListener('mouseover', (e) => {
         mostrarTooltip(e, titulo);
       });
-      item.addEventListener('mouseleave', (e) => {
-        ocultarTooltip();
+      item.addEventListener('mouseout', (e) => {
+        setTimeout(() => {
+          if (estadoTooltip) {
+            ocultarTooltip(3000);
+          }
+        }, 1000);
+        //ocultarTooltip();
       });
     }
 }
@@ -323,7 +359,7 @@ function Titulos(id) {
 //document.getElementById('fileInput')
 fileName.addEventListener('change', function(e) {
   const file = e.target.files[0];
-  console.log(file);
+  //console.log(file);
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(evt) {
@@ -437,7 +473,7 @@ function mostrarTabla(lista) {
 }
 chkPorcentaje.addEventListener("change", () => {
   if (chkPorcentaje.checked) {
-    porcentaje = document.getElementById('porcentajeInput')?.value || 20;
+    porcentaje = document.getElementById('porcentajeInput')?.value || 30;
     recalcularPrecios();
   } else {
     //porcentaje = null;
@@ -446,21 +482,21 @@ chkPorcentaje.addEventListener("change", () => {
   //recalcularPrecios();
 });
 // ✏️ Editar
-function editar2(idx, campo, valor) {
-  datos[idx][campo] = valor;
-}
-// ✏️ Editar
-function editar3(idx, campo, valor) {
-  // Guardamos el valor editado
-  datos[idx][campo] = valor;
-  // Si el campo editado es 'precio1' o 'precio2', actualizamos la fecha
-  if (campo === 'PRECIO' || campo === 'PRECIO2' || campo === 'CODIGO') {
-    datos[idx]['ACTUALIZADO'] = fechaActual;
-    // Actualizamos la tabla en pantalla (opcional)
-    const fila = document.querySelector(`#tabla tbody tr:nth-child(${idx + 1}) td:nth-child(7)`);
-    if (fila) fila.innerText = datos[idx]['ACTUALIZADO'];
-  }
-}
+// function editar2(idx, campo, valor) {
+//   datos[idx][campo] = valor;
+// }
+// // ✏️ Editar
+// function editar3(idx, campo, valor) {
+//   // Guardamos el valor editado
+//   datos[idx][campo] = valor;
+//   // Si el campo editado es 'precio1' o 'precio2', actualizamos la fecha
+//   if (campo === 'PRECIO' || campo === 'PRECIO2' || campo === 'CODIGO') {
+//     datos[idx]['ACTUALIZADO'] = fechaActual;
+//     // Actualizamos la tabla en pantalla (opcional)
+//     const fila = document.querySelector(`#tabla tbody tr:nth-child(${idx + 1}) td:nth-child(7)`);
+//     if (fila) fila.innerText = datos[idx]['ACTUALIZADO'];
+//   }
+// }
 function editar(idx, campo, valor) {
   if (campo === 'PRECIO' || campo === 'PRECIO2') {
     if (chkPorcentaje.checked) {
@@ -507,7 +543,7 @@ function inicializarCeldasCodigo() {
           this.innerText = this.innerText.replace(/\D/g, '').slice(0,13);
           // Actualizar array de datos
           datos[idx]['CODIGO'] = this.innerText;
-          console.log(idx);
+          // console.log(idx);
           datos[idx]['ACTUALIZADO'] = fechaActual;
           // Mover cursor al final
           moverCursorAlFinal(this);
@@ -546,7 +582,7 @@ function guardarCSV() {
     URL.revokeObjectURL(url);
 
     // Mostrar éxito sin interrumpir
-    console.log("✅ Archivo guardado correctamente:", nombre);
+    // console.log("✅ Archivo guardado correctamente:", nombre);
     SetCookie('csvData', csvTexto, 30);
 
     // (Opcional) Mostrar mensaje visual breve
@@ -597,41 +633,50 @@ document.addEventListener('keydown', function(e) {
   }
 });
 // 🚪 Abrir/Cerrar modal eliminar articulo
-function abrirModalEliminar2() {
-  origen = "modalEliminar";
-  //document.getElementById("modalEliminar")
-  modalEliminar.style.display = "flex";
-  usuarioActivoEnModal = false;
-  clearTimeout(timeoutCerrarModal);
-  //document.getElementById("buscarEliminar")
-  buscarEliminar.value = "";
-  //document.getElementById("buscarEliminar")
-  buscarEliminar.focus();
-  coincidencias = [];
-  indiceActual = 0;
-  actualizarVistaCoincidencia();
-  setTimeout(() => {
-    //if (!nuevoNombre.value || !precio1.value) {
-    if (modalEliminar.style.display === 'flex') {
-      // if (buscarEliminar.oninput()) {
-      //   console.log('cambioooo');
-      // }
-      console.log(buscarEliminar.value);
-      if (!buscarEliminar.value === '') {
-        console.log('no esta vacio');
-        return;
-      } else {
-        cerrarModalEliminar();
-        mostrarMensajeOK(`${Icons.informacion} El formulario: "${modalEliminar.ariaLabel}"<br>Se cerró automáticamente tras 10 segundos por inactividad.`, origen);
-      }
-    }
-  }, 10000);
-}
+// function abrirModalEliminar2() {
+//   origen = "modalEliminar";
+//   //document.getElementById("modalEliminar")
+//   modalEliminar.style.display = "flex";
+//   usuarioActivoEnModal = false;
+//   clearTimeout(timeoutCerrarModal);
+//   //document.getElementById("buscarEliminar")
+//   buscarEliminar.value = "";
+//   //document.getElementById("buscarEliminar")
+//   buscarEliminar.focus();
+//   coincidencias = [];
+//   indiceActual = 0;
+//   actualizarVistaCoincidencia();
+//   setTimeout(() => {
+//     //if (!nuevoNombre.value || !precio1.value) {
+//     if (modalEliminar.style.display === 'flex') {
+//       // if (buscarEliminar.oninput()) {
+//       //   console.log('cambioooo');
+//       // }
+//       // console.log(buscarEliminar.value);
+//       if (!buscarEliminar.value === '') {
+//         // console.log('no esta vacio');
+//         return;
+//       } else {
+//         cerrarModalEliminar();
+//         mostrarMensajeOK(`${Icons.informacion} El formulario: "${modalEliminar.ariaLabel}"<br>Se cerró automáticamente tras 10 segundos por inactividad.`, origen);
+//       }
+//     }
+//   }, 10000);
+// }
 let timeoutCerrarModal = null;
 
 function abrirModalEliminar() {
   origen = "modalEliminar";
+  segundosRestantes = 10;
   modalEliminar.style.display = "flex";
+  contadorCerrar.style.display = "none"; // oculto al abrir
+  mensaje = `${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!\nIngrese un valor sobre el campo de busqueda, o haga click en cualquier lugar del formulario para Cancelar el cierre.!`;
+  //contadorCerrar.textContent = `${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!`;
+
+
+  // Cancelar temporizadores previos si existían
+  //clearTimeout(timeoutMostrarContador);
+  clearInterval(intervalContador);
 
   // Reiniciamos bandera y timeout cada vez que abrimos
   usuarioActivoEnModal = false;
@@ -642,20 +687,40 @@ function abrirModalEliminar() {
   eventosActividad.forEach(evento => {
     modalEliminar.addEventListener(evento, mantenerModalActivo);
   });
+  buscarEliminar.addEventListener('input', cancelarContador);
+  //modalEliminar.querySelectorAll('div').addEventListener('click', cancelarContador);
+  modalEliminar.querySelectorAll('div').forEach(div => {
+    div.addEventListener('click', cancelarContador);
+  });
 
   // Configurar el cierre automático
   timeoutCerrarModal = setTimeout(() => {
     if (modalEliminar.style.display === "flex" && !usuarioActivoEnModal) {
       if (!buscarEliminar.value) {
-        cerrarModalEliminar();
-        mostrarMensajeOK(`${Icons.informacion} El formulario: "${modalEliminar.ariaLabel}"<br>Se cerró automáticamente tras 10 segundos por inactividad.`, origen);
+        contadorCerrar.style.display = "block";
+        contadorCerrar.textContent = mensaje;//`${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!`;
+        // 🔹 Contador regresivo cada segundo
+        intervalContador = setInterval(() => {
+          segundosRestantes--;
+          mensaje = `${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!\nIngrese un valor sobre el campo de busqueda, o haga click en cualquier lugar del formulario para Cancelar el cierre.!`;
+          if (segundosRestantes > 0) {
+            contadorCerrar.textContent = mensaje;//`${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!`;
+          } else {
+            clearInterval(intervalContador);
+            cerrarModalEliminar();
+            mostrarMensajeOK(`${Icons.informacion} El formulario: "${modalEliminar.ariaLabel}"<br>Se cerró automáticamente tras 10 segundos por inactividad.`, origen);
+          }
+        }, 1000)
+        //cerrarModalEliminar();
+        //mostrarMensajeOK(`${Icons.informacion} El formulario: "${modalEliminar.ariaLabel}"<br>Se cerró automáticamente tras 10 segundos por inactividad.`, origen);
         // mostrarMensajeOK(
         //   `${Icons.informacion} No se ingresaron datos.<br>⚙️Nombre Producto o ${Icons.money2} Precio Venta vacíos.<br>El formulario: "${modalEliminar.ariaLabel}" se cerró automáticamente tras 15 segundos.`,
         //   origen
         // );
       }
     }
-  }, 15000);
+  }, 10000);
+  actualizarVistaCoincidencia();
 }
 
 // 👤 Si el usuario interactúa, marcamos como activo y cancelamos el cierre
@@ -671,6 +736,18 @@ function cerrarModalEliminar() {
   coincidencias = [];
   articuloSeleccionado = null;
   indiceActual = 0;
+  // Limpiar temporizadores para que no se acumulen
+  clearTimeout(timeoutCerrarModal);
+  clearInterval(intervalContador);
+  limpiarInputs('#modalEliminar'); // Limpia todos los inputs dentro del formulario con id="miFormulario"
+}
+// Función que cancela el contador si el usuario escribe
+function cancelarContador() {
+  //const contador = document.getElementById("contadorCerrar");
+  contadorCerrar.style.display = "none";
+
+  clearTimeout(timeoutCerrarModal);
+  clearInterval(intervalContador);
 }
 // 💲 Formatear campo de precio al perder foco
 function formatearCampo(elem) {
@@ -746,7 +823,7 @@ precio2.addEventListener('blur', function() {
 })
 // 🧾 Formatear número como moneda estilo "$ 2.300,00"
 function formatearPrecio2(valor) {
-  //console.log(valor);
+  // //console.log(valor);
   let num = parseFloat(valor.toString().replace(/[^\d.,]/g, '').replace(',', '.'));
   if (isNaN(num)) num = 0;
   return '$ ' + num.toFixed(2)
@@ -862,18 +939,18 @@ function getCookie(nombre) {
 function comprobarCSV() {
   // Si no hay datos, no hacer nada
   if (!csvData) {
-    console.log("❌ No hay CSV en localStorage");
+    // console.log("❌ No hay CSV en localStorage");
     return false;
   }
 
   // Si hay datos, verificar el nombre
   if (csvName && csvName.trim() !== "") {
     nombre = csvName;
-    console.log(`✅ CSV cargado: ${nombre} (${csvData.length} caracteres)`);
+    // console.log(`✅ CSV cargado: ${nombre} (${csvData.length} caracteres)`);
   } else {
     // Si no existe el nombre, crear uno por defecto
     nombre = archivo;
-    console.log("⚠️ No había csvName, se asignó nombre por defecto:", nombre);
+    // console.log("⚠️ No había csvName, se asignó nombre por defecto:", nombre);
     localStorage.setItem("csvName", nombre);
   }
 
@@ -889,7 +966,6 @@ function buscarArticuloEliminar() {
     obj.ID?.toString().includes(busqueda) ||
     obj.PRODUCTO?.toLowerCase().includes(busqueda)
   );
-
   indiceActual = 0;
   actualizarVistaCoincidencia();
 }
@@ -918,92 +994,33 @@ function mostrarAnteriorCoincidencia() {
 // 🧾 Actualiza la vista del resultado actual
 function actualizarVistaCoincidencia() {
   contador2.textContent = `${coincidencias.length} ${coincidencias.length === 1 ? 'coincidencia' : 'coincidencias'}`;
-  const elementos = [id, id2, nombreEncontrado, nombreEncontradoP, precioEncontrado, precioEncontradoP, precioEncontrado2, precioEncontrado2P, resultadoEliminar];
-  elementos.forEach(el => {
-    const nuevo = el.cloneNode(true);
-    el.parentNode.replaceChild(nuevo, el);
-  });
-
   if (coincidencias.length > 0) {
     articuloSeleccionado = coincidencias[indiceActual];
-    if (articuloSeleccionado) {
-    console.log(articuloSeleccionado);
-    //document.getElementById("codigoEncontrado").textContent = articuloSeleccionado.ID || "-";
-    id.textContent = articuloSeleccionado.ID || "-";
-    //document.getElementById("codigoEncontrado")
-    id.addEventListener('mouseover', (e) => {
-      mostrarTooltip(e, `ID: ${articuloSeleccionado.ID}`);
-      e.stopPropagation();
-    });
-    //document.getElementById("codigoEncontradoP")
-    id2.addEventListener('mouseover', (e) => {
-      mostrarTooltip(e, `ID: ${articuloSeleccionado.ID}`);
-      e.stopPropagation();
-    });
-    //document.getElementById("nombreEncontrado")
-    nombreEncontrado.textContent = articuloSeleccionado.PRODUCTO || "-";
-    //document.getElementById("nombreEncontrado")
-    nombreEncontrado.addEventListener('mouseover', (e) => {
-      mostrarTooltip(e, `Producto: ${articuloSeleccionado.PRODUCTO}`);
-      e.stopPropagation();
-    });
-    //document.getElementById("nombreEncontradoP")
-    nombreEncontradoP.addEventListener('mouseover', (e) => {
-      mostrarTooltip(e, `Producto: ${articuloSeleccionado.PRODUCTO}`);
-      e.stopPropagation();
-    });
-    //document.getElementById("precioEncontrado")
-    precioEncontrado.textContent = articuloSeleccionado.PRECIO || "-";
-    //document.getElementById("precioEncontrado")
-    precioEncontrado.addEventListener('mouseover', (e) => {
-      mostrarTooltip(e, `Precio Venta: ${articuloSeleccionado.PRECIO}`);
-      e.stopPropagation();
-    });
-    //document.getElementById("precioEncontradoP")
-    precioEncontradoP.addEventListener('mouseover', (e) => {
-      mostrarTooltip(e, `Precio Venta: ${articuloSeleccionado.PRECIO}`);
-      e.stopPropagation();
-    });
-    //document.getElementById("precioEncontrado2")
-    precioEncontrado2.textContent = articuloSeleccionado.PRECIO2 || "-";
-    //document.getElementById("precioEncontrado2")
-    precioEncontrado2.addEventListener('mouseover', (e) => {
-      mostrarTooltip(e, `Precio Deudor: ${articuloSeleccionado.PRECIO2}`);
-      e.stopPropagation();
-    });
-    //document.getElementById("precioEncontrado2P")
-    precioEncontrado2P.addEventListener('mouseover', (e) => {
-      mostrarTooltip(e, `Precio Deudor: ${articuloSeleccionado.PRECIO2}`);
-      e.stopPropagation();
-    });
-    //document.getElementById("resultadoEliminar").
-    resultadoEliminar.addEventListener('mouseover', (e) => {
-      //if (!articuloSeleccionado) {
-        //console.log('hola');
-        //mostrarTooltip(e, TitulosList.resultadoEliminar);
-
-      //} else {
-        //console.log('935');
-        mostrarTooltip(e, `Producto: ${articuloSeleccionado.PRODUCTO}\nId: ${articuloSeleccionado.ID}\nPrecio Venta: ${articuloSeleccionado.PRECIO}\nPrecio Deudores: ${articuloSeleccionado.PRECIO2}`);
-      //}
-      //mostrarTooltip(e, `Producto: ${articuloSeleccionado.PRODUCTO}\nId: ${articuloSeleccionado.ID}\nPrecio Venta: ${articuloSeleccionado.PRECIO}\nPrecio Deudores: ${articuloSeleccionado.PRECIO2}`);
-      e.stopPropagation();
-    });
-    } else {
-      [id, id2, nombreEncontrado, nombreEncontradoP, precioEncontrado, precioEncontradoP, precioEncontrado2, precioEncontrado2P, resultadoEliminar].forEach(el => {
-        if (el) {
-          el.addEventListener('mouseover', (e) => {
-            mostrarTooltip(e, TitulosList.resultadoEliminar);
-            e.stopPropagation();
-            // if (articuloSeleccionado)
-            //   mostrarTooltip(e, `💰 Precio Deudor: ${articuloSeleccionado.PRECIO2 || 'No disponible'}`);
-            // e.stopPropagation();
-          });
-        }
-      });
-      //mostrarTooltip(e, TitulosList.resultadoEliminar);
-      //e.stopPropagation();
-    }
+    //if (articuloSeleccionado) {
+    // Primero definimos los valores de cada textContent
+    id.textContent = articuloSeleccionado?.ID || "-";
+    nombreEncontrado.textContent = articuloSeleccionado?.PRODUCTO || "-";
+    precioEncontrado.textContent = articuloSeleccionado?.PRECIO || "-";
+    precioEncontrado2.textContent = articuloSeleccionado?.PRECIO2 || "-";
+    // Luego definimos un tooltip unico para cada elemento
+    //asignarTooltipUnico2(id, () => `ID: ${articuloSeleccionado.ID}`);
+    asignarTooltipUnico2(id, () => `ID: ${id.textContent}`);
+    //asignarTooltipUnico(id,`ID: ${articuloSeleccionado.ID}`);
+    asignarTooltipUnico2(id2, () => `ID: ${id.textContent}`);
+    asignarTooltipUnico2(nombreEncontrado, () => `Producto: ${nombreEncontrado.textContent}`);
+    asignarTooltipUnico2(nombreEncontradoP, () => `Producto: ${nombreEncontrado.textContent}`);
+    asignarTooltipUnico2(precioEncontrado, () => `Precio Venta: ${precioEncontrado.textContent}`);
+    asignarTooltipUnico2(precioEncontradoP, () => `Precio Venta: ${precioEncontrado.textContent}`);
+    asignarTooltipUnico2(precioEncontrado2, () => `Precio Deudor: ${precioEncontrado2.textContent}`);
+    asignarTooltipUnico2(precioEncontrado2P, () => `Precio Deudor: ${precioEncontrado2.textContent}`);
+    asignarTooltipUnico2(resultadoEliminar, () => `Producto: ${nombreEncontrado.textContent}\nId: ${id.textContent}\nPrecio Venta: ${precioEncontrado.textContent}\nPrecio Deudores: ${precioEncontrado2.textContent}`);
+    // asignarTooltipUnico2(nombreEncontrado, () => `Producto: ${articuloSeleccionado.PRODUCTO}`);
+    // asignarTooltipUnico2(nombreEncontradoP, () => `Producto: ${articuloSeleccionado.PRODUCTO}`);
+    // asignarTooltipUnico2(precioEncontrado, () => `Precio Venta: ${articuloSeleccionado.PRECIO}`);
+    // asignarTooltipUnico2(precioEncontradoP, () => `Precio Venta: ${articuloSeleccionado.PRECIO}`);
+    // asignarTooltipUnico2(precioEncontrado2, () => `Precio Deudor: ${articuloSeleccionado.PRECIO2}`);
+    // asignarTooltipUnico2(precioEncontrado2P, () => `Precio Deudor: ${articuloSeleccionado.PRECIO2}`);
+    // asignarTooltipUnico2(resultadoEliminar, () => `Producto: ${articuloSeleccionado.PRODUCTO}\nId: ${articuloSeleccionado.ID}\nPrecio Venta: ${articuloSeleccionado.PRECIO}\nPrecio Deudores: ${articuloSeleccionado.PRECIO2}`);
     btnEliminar.disabled = false;
     btnEliminar.style.cursor = 'pointer';
     if (nuevoIndice < coincidencias.length) {
@@ -1020,6 +1037,7 @@ function actualizarVistaCoincidencia() {
       btnAnterior.style.cursor = 'pointer';
     }
   } else {
+    //elementos.forEach(el => el && (el._tieneTooltip = false));
     articuloSeleccionado = null;
     document.getElementById("codigoEncontrado").textContent = "-";
     document.getElementById("nombreEncontrado").textContent = "-";
@@ -1033,6 +1051,7 @@ function actualizarVistaCoincidencia() {
       btnAnterior.disabled = true;
       btnAnterior.style.cursor = 'not-allowed';
     }
+    asignarTooltipsModalEliminar();
   }
 }
 // 🗑️ Eliminar artículo actual
@@ -1081,7 +1100,7 @@ function detenerCSVTemporizador() {
     intervalId = null;
     estadoTemporizador = false;
     intentos = 0;
-    console.log('Temporizador detenido');
+    // console.log('Temporizador detenido');
   }
 }
 
@@ -1104,11 +1123,11 @@ function comprobarCambiosCSV() {
     const csvActual = lineas.join('\n'); // CSV actual generado
     const csvGuardado = localStorage.getItem("csvData"); // CSV guardado
     
-    console.log(`CSV actual tiene ${csvDataOriginal.length} caracteres`);
-    console.log(`CSV guardado tiene ${csvGuardado ? csvGuardado.length : 0} caracteres`);
+    // console.log(`CSV actual tiene ${csvDataOriginal.length} caracteres`);
+    // console.log(`CSV guardado tiene ${csvGuardado ? csvGuardado.length : 0} caracteres`);
 
     if (!csvGuardado) {
-      //console.log("💾 No había CSV guardado, creando uno nuevo...");
+      // //console.log("💾 No había CSV guardado, creando uno nuevo...");
       //localStorage.setItem("csvData", csvActual);
       return;
     }
@@ -1120,7 +1139,7 @@ function comprobarCambiosCSV() {
       mostrarMensajeOK(`${Icons.advertencia} Se detectaron cambios en los datos de LocalStorage.!<br>${Icons.guardar} Cambios guardados automáticamente`, origen);
       detenerCSVTemporizador();
     } else {
-      console.log("✅ El CSV visible coincide con el almacenado.");
+      // console.log("✅ El CSV visible coincide con el almacenado.");
     }
 
   } catch (err) {
@@ -1158,8 +1177,15 @@ function limpiarInputs(contenedorSelector) {
   const contenedor = document.querySelector(contenedorSelector);
   if (!contenedor) return;
 
-  const inputs = contenedor.querySelectorAll('input, textarea, select');
+  const inputs = contenedor.querySelectorAll('input, textarea, select, span');
   inputs.forEach(input => {
+    const tag = input.tagName.toLowerCase();
+
+    if (tag === 'span') {
+      input.textContent = '-'; // 🧹 Limpia texto visible
+      return;
+    }
+    
     switch (input.type) {
       case 'text':
       case 'number':
@@ -1217,7 +1243,7 @@ function obtenerFechaMasRecienteFormatoCSV(csvTexto, origenFecha) {
     const partes = l.split(separador);
     const valor = partes[idxFecha]?.trim();
     if (origenFecha === 'original') {
-      //console.log(`Fechas Originales: ${valor}`);
+      // //console.log(`Fechas Originales: ${valor}`);
       FechasViejas.push(valor);
     } else {
       //console.log(`Fechas Actuales: ${valor}`);
@@ -1243,31 +1269,29 @@ function obtenerFechaMasRecienteFormatoCSV(csvTexto, origenFecha) {
 }
 
 // 🔹 Compara dos arrays de fechas (mismo largo idealmente)
-function compararFechasArrays(fechasOriginal, fechasNuevas) {
-  const resultados = [];
+// function compararFechasArrays(fechasOriginal, fechasNuevas) {
+//   const resultados = [];
 
-  const maxLen = Math.max(fechasOriginal.length, fechasNuevas.length);
-  for (let i = 0; i < maxLen; i++) {
-    const fOrig = fechasOriginal;
-    const fNueva = fechasNuevas;
+//   const maxLen = Math.max(fechasOriginal.length, fechasNuevas.length);
+//   for (let i = 0; i < maxLen; i++) {
+//     const fOrig = fechasOriginal;
+//     const fNueva = fechasNuevas;
 
-    if (!fOrig || !fNueva) continue;
+//     if (!fOrig || !fNueva) continue;
 
-    if (fNueva > fOrig) {
-      resultados.push({
-        indice: i,
-        original: fechasOriginal[i],
-        nueva: fechasNuevas[i]
-      });
-    }
-  }
-
-  return resultados;
-}
-
+//     if (fNueva > fOrig) {
+//       resultados.push({
+//         indice: i,
+//         original: fechasOriginal[i],
+//         nueva: fechasNuevas[i]
+//       });
+//     }
+//   }
+//   return resultados;
+// }
+// Funcion que busca las fechas diferentes
 function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
   const diferentes = [];
-
   for (let i = 0; i < fechasNuevas.length; i++) {
     const fOrig = fechasOriginal[i];
     const fNueva = fechasNuevas[i];
@@ -1282,38 +1306,84 @@ function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
       });
     }
   }
-
   return diferentes;
 }
-
+// Comprobamos si los datos del archivo original
+// cargado en localStorage con nombre "csvOriginal"
+// contiene los mismos datos que localStorage con nombre "csvData"
 setTimeout(() => {
-  //const HOY = 
   obtenerFechaMasRecienteFormatoCSV(csvData, 'actuales');
-  //const VIEJO = 
   obtenerFechaMasRecienteFormatoCSV(csvDataOriginal, 'original');
-  //console.log(`HOY: ${HOY}`);
-  //console.log(`VIEJO: ${VIEJO}`);
-  //const cambios = compararFechasArrays(FechasViejas, FechasActuales);
   const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
-  //const cambios2 = obtenerFechasMasNuevas(FechasActuales, FechasViejas);
-  //cambios.forEach(c => console.log(c.nueva));
   const originalesDiferentes = cambios.map(c => c.original);
   const actualesDiferentes = cambios.map(c => c.nueva);
-  //console.log(originalesDiferentes.length);
-  //console.log(actualesDiferentes.length);
-  //console.log(cambios);
-  //console.log(cambios2);
   if (originalesDiferentes.length > 0) {
-    //const lista = FechasViejas;
-    //console.log('es viejo');
-    //console.log(csvData);
-    //console.log(`Fechas Originales: ${FechasViejas}`);
-    
     mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en: ${archivoOriginal} procedente del archivo original: ${Icons.csv}${nombre}<br>Son más antiguos que los datos de: ${csvDatos} almacenados en LocalStorage`, 'datosOriginales');
     localStorage.setItem(archivoOriginal, csvData);
   } else {
     console.log('son iguales');
   }
-  //console.log(obtenerFechaMasRecienteFormatoCSV(csvData)); // "15/10/2025"
-  //console.log(obtenerFechaMasRecienteFormatoCSV(csvDataOriginal)); // "14/10/2025"
 }, 5000);
+// 🔹 Función para asignar un tooltip único a un elemento
+function asignarTooltipUnico2(el, textoFn) {
+  if (!el) return;
+  el._tieneTooltip = true;
+  el.addEventListener('mouseover', e => {
+    mostrarTooltip(e, textoFn());
+    e.stopPropagation();
+  });
+}
+// 🔹 Función para asignar un tooltip único a un elemento utilizada por 
+// la funcion que asigna tooltips dentro del modalEliminar
+function asignarTooltipUnico(el, textoFn) {
+  if (!el || el._tieneTooltip) return;
+  el._tieneTooltip = true;
+  el.addEventListener('mouseover', e => {
+    const texto = typeof textoFn === 'function' ? textoFn(el) : textoFn;
+    mostrarTooltip(e, texto);
+    e.stopPropagation();
+  });
+  //el.addEventListener('mouseout', ocultarTooltip);
+  el.addEventListener('mouseout', function() {
+    ocultarTooltip(1000);
+  });
+}
+
+// 🔹 Función para asignar tooltips dentro del modalEliminar
+function asignarTooltipsModalEliminar() {
+  //const modal = document.getElementById('modalEliminar');
+  if (!modalEliminar) return;
+
+  elementos.forEach(el => {
+    const id = el.id || el.name || el.textContent?.trim();
+    let textoTooltip = null;
+    switch (id) {
+      default:
+        textoTooltip = TitulosList.modalEliminarSinData;
+    }
+
+    // 🔸 Elegimos el texto según el id o contenido
+    // switch (id) {
+    //   case 'btnEliminar':
+    //     textoTooltip = TitulosList.btnEliminar;
+    //     break;
+    //   case 'btnCancelar':
+    //     textoTooltip = TitulosList.btnCancelar;
+    //     break;
+    //   case 'btnLimpiar':
+    //     textoTooltip = TitulosList.btnLimpiar;
+    //     break;
+    //   case 'codigo':
+    //     textoTooltip = TitulosList.codigo;
+    //     break;
+    //   case 'nombre':
+    //     textoTooltip = TitulosList.nombre;
+    //     break;
+    //   // 🔹 Agregá más casos si necesitás
+    //   default:
+    //     textoTooltip = 'Elemento del modal.';
+    // }
+
+    asignarTooltipUnico(el, textoTooltip);
+  });
+}
