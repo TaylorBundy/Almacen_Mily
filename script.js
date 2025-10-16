@@ -1337,6 +1337,37 @@ function obtenerFechaMasRecienteFormatoCSV(csvTexto, origenFecha) {
 
   return `${dia}/${mes}/${año}`;
 }
+// 🔹 Obtener la fecha más reciente del campo "ACTUALIZADO" en un JSON
+function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
+  if (!jsonData || !Array.isArray(jsonData) || jsonData.length === 0) return null;
+
+  const fechas = jsonData.map(item => {
+    const valor = item["ACTUALIZADO"]?.trim();
+
+    if (origenFecha === "original") {
+      FechasViejas.push(valor);
+    } else {
+      FechasActuales.push(valor);
+    }
+
+    if (!valor || valor === "0") return null;
+
+    const [dia, mes, año] = valor.split("/").map(Number);
+    if (!dia || !mes || !año) return null;
+
+    return new Date(año, mes - 1, dia);
+  }).filter(f => f instanceof Date && !isNaN(f));
+
+  if (!fechas.length) return null;
+
+  const fechaMax = new Date(Math.max(...fechas.map(f => f.getTime())));
+  const dia = String(fechaMax.getDate()).padStart(2, "0");
+  const mes = String(fechaMax.getMonth() + 1).padStart(2, "0");
+  const año = fechaMax.getFullYear();
+
+  return `${dia}/${mes}/${año}`;
+}
+
 
 // 🔹 Compara dos arrays de fechas (mismo largo idealmente)
 // function compararFechasArrays(fechasOriginal, fechasNuevas) {
@@ -1382,8 +1413,16 @@ function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
 // cargado en localStorage con nombre "csvOriginal"
 // contiene los mismos datos que localStorage con nombre "csvData"
 setTimeout(() => {
-  obtenerFechaMasRecienteFormatoCSV(csvData, 'actuales');
-  obtenerFechaMasRecienteFormatoCSV(csvDataOriginal, 'original');
+  if (esLocal()) {
+    obtenerFechaMasRecienteFormatoCSV(csvData, 'actuales');
+    obtenerFechaMasRecienteFormatoCSV(csvDataOriginal, 'original');
+  } else {
+    const datosActuales = localStorage.getItem("jsonData");
+    const datosOriginales = localStorage.getItem("jsonOriginal");
+    obtenerFechaMasRecienteFormatoJSON(datosActuales, 'actuales');
+    obtenerFechaMasRecienteFormatoJSON(datosOriginales, 'original');
+    //console.log()
+  }
   const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
   const originalesDiferentes = cambios.map(c => c.original);
   const actualesDiferentes = cambios.map(c => c.nueva);
