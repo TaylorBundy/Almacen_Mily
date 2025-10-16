@@ -28,7 +28,7 @@ async function cargarJSON2() {
       }));
   
       // Llamamos a mostrarTabla con los datos adaptados
-      //mostrarTabla(datos);
+      mostrarTabla(datos);
       console.log(datos);
   
       return datos; // opcional, si necesitas usar los datos luego

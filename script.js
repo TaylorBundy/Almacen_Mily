@@ -301,7 +301,6 @@ function recalcularPrecios() {
 function esPrecioValido(valor) {
   return regexPrecio.test(valor);
 }
-
 // Deshabilitar búsqueda y botones si no hay datos
 window.onload = function() {
   contador = items.textContent.split(': ')[1];
