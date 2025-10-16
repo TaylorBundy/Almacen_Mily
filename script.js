@@ -1393,6 +1393,7 @@ function obtenerFechaMasRecienteFormatoJSON2(jsonData, origenFecha) {
 // }
 
 function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
+  console.log(jsonData);
   if (!Array.isArray(jsonData) || jsonData.length === 0) return null;
 
   const fechas = [];
@@ -1406,11 +1407,45 @@ function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
 
     const fecha = new Date(año, mes - 1, dia);
     fechas.push(fecha);
-
+    //console.log(valor);
+    if (origenFecha === 'original') {
+      // //console.log(`Fechas Originales: ${valor}`);
+      FechasViejas.push(valor);
+    } else {
+      //console.log(`Fechas Actuales: ${valor}`);
+      FechasActuales.push(valor);
+    }
     // Guardar en arrays externos si los estás usando
     if (origenFecha === "original") FechasViejas.push(valor);
     else if (origenFecha === "nueva") FechasActuales.push(valor);
   });
+
+  if (!fechas.length) return null;
+
+  const fechaMax = new Date(Math.max(...fechas.map(f => f.getTime())));
+
+  const dia = String(fechaMax.getDate()).padStart(2, "0");
+  const mes = String(fechaMax.getMonth() + 1).padStart(2, "0");
+  const año = fechaMax.getFullYear();
+
+  return `${dia}/${mes}/${año}`;
+}
+// 🔹 Convierte el campo "ACTUALIZADO" de cada objeto a Date y devuelve la más reciente
+function obtenerFechaMasRecienteJSON(jsonData) {
+  if (!Array.isArray(jsonData) || jsonData.length === 0) return null;
+
+  const fechas = [];
+
+  jsonData.forEach(item => {
+    const valor = item.ACTUALIZADO?.trim();
+    if (!valor || valor === "0") return; // ignorar vacíos o "0"
+
+    const [dia, mes, año] = valor.split("/").map(Number);
+    if (!dia || !mes || !año) return;
+
+    fechas.push(new Date(año, mes - 1, dia));
+  });
+  console.log(fechas);
 
   if (!fechas.length) return null;
 
@@ -1449,12 +1484,16 @@ setTimeout(() => {
   if (esLocal()) {
     obtenerFechaMasRecienteFormatoCSV(csvData, 'actuales');
     obtenerFechaMasRecienteFormatoCSV(csvDataOriginal, 'original');
+    //console.log(csvData);
   } else {
     const datosActuales = localStorage.getItem("jsonData");
     const datosOriginales = localStorage.getItem("jsonOriginal");
-    obtenerFechaMasRecienteFormatoJSON(datosActuales, 'actuales');
-    obtenerFechaMasRecienteFormatoJSON(datosOriginales, 'original');
-    //console.log()
+    //const lista = JSON.parse(datosOriginales);
+    obtenerFechaMasRecienteFormatoJSON(JSON.parse(datosActuales), 'actuales');
+    obtenerFechaMasRecienteFormatoJSON(JSON.parse(datosOriginales), 'original');
+    //console.log(obtenerFechaMasRecienteJSON(datosOriginales));
+    //console.log(datosActuales);
+    //console.log(datosOriginales);
   }
   const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
   console.log(cambios);
@@ -1463,8 +1502,14 @@ setTimeout(() => {
   const originalesDiferentes = cambios.map(c => c.original);
   const actualesDiferentes = cambios.map(c => c.nueva);
   if (originalesDiferentes.length > 0) {
-    mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en: ${archivoOriginal} procedente del archivo original: ${Icons.csv}${nombre}<br>Son más antiguos que los datos de: ${csvDatos} almacenados en LocalStorage`, 'datosOriginales');
-    localStorage.setItem(archivoOriginal, csvData);
+    if (esLocal()) {
+      mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en: ${archivoOriginal} procedente del archivo original: ${Icons.csv}${nombre}<br>Son más antiguos que los datos de: ${csvDatos} almacenados en LocalStorage`, 'datosOriginales');
+      localStorage.setItem(archivoOriginal, csvData);
+    } else {
+      const datosActuales = localStorage.getItem("jsonData");
+      mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en LocalStorage procedentes del archivo Original "Lista_Precios.json"<br>Son más antiguos que los datos almacenados en LocalStorage obtenidos de la tabla de artículos`, 'datosOriginales');
+      localStorage.setItem('jsonOriginal', JSON.stringify(datosActuales));
+    }
   } else {
     console.log('son iguales');
   }
