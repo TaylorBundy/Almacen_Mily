@@ -1319,7 +1319,7 @@ function obtenerFechaMasRecienteFormatoCSV(csvTexto, origenFecha) {
       //console.log(`Fechas Actuales: ${valor}`);
       FechasActuales.push(valor);
     }
-    //console.log(valor);
+    console.log(valor);
     if (!valor) return null;
 
     const [dia, mes, año] = valor.split('/').map(Number);
@@ -1349,6 +1349,7 @@ function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
     } else {
       FechasActuales.push(valor);
     }
+    console.log(valor);
 
     if (!valor || valor === "0") return null;
 
