@@ -1125,6 +1125,7 @@ function comprobarCambiosCSV() {
     });
 
     const csvActual = lineas.join('\n'); // CSV actual generado
+    console.log(csvActual);
     const csvGuardado = localStorage.getItem("csvData"); // CSV guardado
     
     // console.log(`CSV actual tiene ${csvDataOriginal.length} caracteres`);
