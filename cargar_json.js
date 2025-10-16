@@ -32,8 +32,8 @@ async function cargarJSON() {
         //console.log(datos);
         //localStorage.setItem('pruebaonline', datos);
         //localStorage.setItem('pruebaonline', JSON.stringify(datos));
-        localStorage.setItem('csvData', JSON.stringify(datos));
-        localStorage.setItem('csvOriginal', JSON.stringify(datos));
+        localStorage.setItem('jsonData', JSON.stringify(datos));
+        localStorage.setItem('jsonOriginal', JSON.stringify(datos));
 
         return datos; // opcional, si necesitas usar los datos luego
     } catch (err) {
@@ -43,7 +43,7 @@ async function cargarJSON() {
 }
 
 function cargarDesdeLocalStorage() {
-    const datosGuardados = localStorage.getItem("csvData");
+    const datosGuardados = localStorage.getItem("jsonData");
   
     if (datosGuardados) {
       try {

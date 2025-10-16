@@ -191,7 +191,7 @@ function mostrarMensajeOK(texto, origen) {
     msg.style.background = "#2196f3";
   }
   document.body.appendChild(msg);
-  setTimeout(() => msg.remove(), segundos);
+  //setTimeout(() => msg.remove(), segundos);
 }
 // Muestra un mensaje visual con temporizador y callback opcional
 function mostrarMensajeConTimer(texto, origen = '', segundos = 3, callback = null) {
@@ -1089,7 +1089,8 @@ function iniciarCSVTemporizador(tiempo) {
   intervalId = setInterval(() => {
     if (intentos < 3) {
       //estadoTemporizador = true;
-      comprobarCambiosCSV();
+      //comprobarCambiosCSV();
+      comprobarCambiosDatos();
       intentos += 1;
       //console.log(`intentos: ${intentos}`);
     } else {
@@ -1128,9 +1129,6 @@ function comprobarCambiosCSV() {
     const csvActual = lineas.join('\n'); // CSV actual generado
     console.log(csvActual);
     const csvGuardado = localStorage.getItem("csvData"); // CSV guardado
-    
-    // console.log(`CSV actual tiene ${csvDataOriginal.length} caracteres`);
-    // console.log(`CSV guardado tiene ${csvGuardado ? csvGuardado.length : 0} caracteres`);
 
     if (!csvGuardado) {
       // //console.log("💾 No había CSV guardado, creando uno nuevo...");
@@ -1152,6 +1150,68 @@ function comprobarCambiosCSV() {
     console.error("❌ Error al comprobar cambios CSV:", err);
   }
 }
+// 🧩 Función principal
+function comprobarCambiosDatos() {
+  try {
+    // Detectar si estamos usando JSON o CSV
+    const usandoJSON = window.location.href.startsWith('https://');
+    const storageKey = usandoJSON ? 'jsonData' : 'csvData';
+    const guardado = localStorage.getItem(storageKey);
+
+    if (!guardado) return; // No hay base previa, salir sin tocar nada
+
+    let datosGuardados;
+    let datosActuales = datos; // Asumimos que "datos" tiene la tabla actual en memoria
+
+    // 🔄 Parsear según el modo
+    if (usandoJSON) {
+      datosGuardados = JSON.parse(guardado);
+    } else {
+      // Si es CSV, convertimos la cadena guardada a texto para comparar
+      const separador = ';';
+      const columnas = headers;
+      const lineas = [columnas.join(separador)];
+
+      datosActuales.forEach(obj => {
+        const fila = columnas.map(c => (obj[c] || '').toString().replace(/"/g, '')).join(separador);
+        lineas.push(fila);
+      });
+      datosGuardados = guardado.trim();
+      datosActuales = lineas.join('\n').trim();
+    }
+
+    // ⚖️ Comparar
+    let hayCambios = false;
+
+    if (usandoJSON) {
+      // Comparar objetos JSON
+      hayCambios = JSON.stringify(datosGuardados) !== JSON.stringify(datosActuales);
+    } else {
+      // Comparar texto CSV
+      hayCambios = datosGuardados !== datosActuales;
+    }
+
+    // 💾 Guardar si hubo cambios
+    if (hayCambios) {
+      if (usandoJSON) {
+        localStorage.setItem(storageKey, JSON.stringify(datosActuales));
+      } else {
+        localStorage.setItem(storageKey, datosActuales);
+      }
+
+      mostrarMensajeOK(
+        `${Icons.advertencia} Se detectaron cambios en los datos de LocalStorage.<br>${Icons.guardar} Cambios guardados automáticamente`,
+        "compruebaCambios"
+      );
+
+      detenerCSVTemporizador();
+    }
+
+  } catch (err) {
+    console.error("❌ Error al comprobar cambios:", err);
+  }
+}
+
 // 🧹 Limpiar input (genérico-individual)
 function limpiarInput(inputElement) {
   if (!inputElement) return;
