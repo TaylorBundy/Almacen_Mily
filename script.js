@@ -1396,6 +1396,7 @@ function obtenerFechaMasRecienteFormatoJSON2(jsonData, origenFecha) {
 
 function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
   //console.log(jsonData);
+  
   if (!Array.isArray(jsonData) || jsonData.length === 0) return null;
 
   const fechas = [];
