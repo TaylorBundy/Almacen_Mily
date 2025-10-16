@@ -176,7 +176,7 @@ function mostrarMensajeOK(texto, origen) {
   msg.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
   msg.style.zIndex = 9999;
   msg.style.opacity = "0.8";
-  if (origen === 'modalAgregar' || origen === 'modalCargando' || origen === 'modalCargado') {
+  if (origen === 'modalAgregar' || origen === 'modalCargando' || origen === 'modalCargado' || origen === 'modalCargandoOnline' || origen === 'modalCargadoOnline') {
     segundos = 2500;
     //msg.style.background = "#FFAB50";
     msg.style.background = "#ff992b";
@@ -1220,6 +1220,7 @@ const observer = new MutationObserver(mutations => {
       const nuevoTexto = fileName2.textContent.trim();
       if (nuevoTexto) {
         origen = "modalCargado";
+        console.log('es aca');
         //mostrarMensajeOK(`🔄 El texto cambió a: <b>${nuevoTexto}</b>`, "modalCargado");
         mostrarMensajeOK(`${Icons.csv2} Archivo CSV: ${nuevoTexto} cargado y guardado localmente`, origen);
       }
