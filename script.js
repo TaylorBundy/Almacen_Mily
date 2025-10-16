@@ -258,7 +258,7 @@ function mostrarMensajeConTimer(texto, origen = '', segundos = 3, callback = nul
           detenerCSVTemporizador();
         }
         if (origen === 'modalCargandoOnline' || origen === 'modalCargadoOnline') {
-          mostrarMensajeOK(`${Icons.carpeta} Archivo JSON: ${nombre} cargado con exito.!`, origen);
+          mostrarMensajeOK(`${Icons.carpeta} Datos JSON: "jsonData" cargado con exito.!`, origen);
           detenerCSVTemporizador();
         }
         if (typeof callback === "function") callback();
