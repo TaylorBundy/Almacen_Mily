@@ -217,9 +217,10 @@
     } else {
       console.log("Ejecutando desde un servidor (GitHub Pages)");
       desdeDonde = 'web';
-      cargarJSON();
+      const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
+      //cargarJSON();
     }
-    if (csvGuardado) {
+    if (csvGuardado || datosGuardados) {
       segundos = 2;
       if (desdeDonde === 'local') {
         mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargado", segundos, cargarCSV);
