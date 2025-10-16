@@ -32,6 +32,7 @@ async function cargarJSON() {
         console.log(datos);
         //localStorage.setItem('pruebaonline', datos);
         localStorage.setItem('pruebaonline', JSON.stringify(datos));
+        localStorage.setItem('csvData', JSON.stringify(datos));
 
         return datos; // opcional, si necesitas usar los datos luego
     } catch (err) {
