@@ -842,6 +842,7 @@ function aplicarFormato(elem, idx, campo) {
 }
   // ➕ Agregar artículo nuevo
 function agregarArticulo() {
+      console.log(datos);
   let codigo = document.getElementById('nuevoCodigo').value.trim();
   //let nombre = document.getElementById('nuevoNombre')
   nombre = nuevoNombre.value.trim();
