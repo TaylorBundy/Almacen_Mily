@@ -1,16 +1,4 @@
 // ⚡ Cargar JSON automáticamente
-async function cargarJSON2() {
-    try {
-      const response = await fetch('datos.json'); // Asegurate que esté en la misma carpeta
-      if (!response.ok) throw new Error('No se pudo cargar el JSON');
-      const json = await response.json();
-      datos = json;
-      mostrarTabla(datos);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
 async function cargarJSON() {
     try {
         const response = await fetch('Lista_Precios.json'); // Asegurate que esté en la misma carpeta
@@ -29,12 +17,8 @@ async function cargarJSON() {
 
         // Llamamos a mostrarTabla con los datos adaptados
         mostrarTabla(datos);
-        //console.log(datos);
-        //localStorage.setItem('pruebaonline', datos);
-        //localStorage.setItem('pruebaonline', JSON.stringify(datos));
         localStorage.setItem('jsonData', JSON.stringify(datos));
         localStorage.setItem('jsonOriginal', JSON.stringify(datos));
-
         return datos; // opcional, si necesitas usar los datos luego
     } catch (err) {
         console.error(err);
@@ -44,14 +28,12 @@ async function cargarJSON() {
 
 function cargarDesdeLocalStorage() {
     const datosGuardados = localStorage.getItem("jsonData");
-  
     if (datosGuardados) {
       try {
         const lista = JSON.parse(datosGuardados);
         datos = lista;
         if (Array.isArray(lista) && lista.length > 0) {
           mostrarTabla(datos);
-          console.log(datos);
           console.log(`✅ Datos cargados desde localStorage (${lista.length} artículos)`);
         } else {
           console.warn("⚠️ No se encontraron artículos válidos en localStorage.");

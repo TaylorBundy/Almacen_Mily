@@ -38,6 +38,7 @@ let estadoTemporizador = false;
 let FechasViejas = [];
 let FechasActuales = [];
 let segundos = 0;
+let segundosTooltip = 0;
 let origen = null;
 let estadoTooltip = false;
 let mensaje = null;
@@ -76,6 +77,7 @@ let timeoutMostrarContador = null;
 let intervalContador = null;
 const contadorCerrar = document.getElementById("contadorCerrar");
 let segundosRestantes = null;
+let timeoutID;
 
 const Icons = {
   csv: "📦",
@@ -145,9 +147,9 @@ function mostrarTooltip(e, texto) {
   tooltip.style.top = (e.clientY + 10) + 'px';
   tooltip.style.display = 'block';
   estadoTooltip = true;
-  setTimeout(() => {
-    ocultarTooltip();
-  }, 5000);
+  //setTimeout(() => {
+    //ocultarTooltip();
+  //}, 5000);
 }
 // ✖️ Ocultar tooltip
 function ocultarTooltip(tiempoOcultar) {
@@ -191,7 +193,7 @@ function mostrarMensajeOK(texto, origen) {
     msg.style.background = "#2196f3";
   }
   document.body.appendChild(msg);
-  //setTimeout(() => msg.remove(), segundos);
+  setTimeout(() => msg.remove(), segundos);
 }
 // Muestra un mensaje visual con temporizador y callback opcional
 function mostrarMensajeConTimer(texto, origen = '', segundos = 3, callback = null) {
@@ -333,6 +335,7 @@ window.onload = function() {
 };
 //Definimos la funcion que agrega los titulos a los componentes
 function Titulos(id) {
+    segundosTooltip = 1500;
     const item = document.getElementById(`${id}`);
     if (item.className.includes('precio1')) {
       titulo = `Producto: ${item.previousElementSibling.textContent}\nPrecio: ${item.textContent}`;
@@ -343,20 +346,19 @@ function Titulos(id) {
     } else if (item.className.includes('codigo')) {
       titulo = `Código de barras: ${item.textContent}\n✏️Contenido modificable.!`;
     }
-    if (item.onmouseover) {
-      //item.title = titulo;
-      item.addEventListener('mouseover', (e) => {
-        mostrarTooltip(e, titulo);
-      });
-      item.addEventListener('mouseout', (e) => {
-        setTimeout(() => {
-          if (estadoTooltip) {
-            ocultarTooltip(3000);
-          }
-        }, 1000);
-        //ocultarTooltip();
-      });
-    }
+    asignarTooltipUnico2(item, () => `${titulo}`, segundosTooltip);
+    // item.addEventListener('mouseover', (e) => {
+    //   item.title = titulo;
+    // });
+    //if (item.onmouseover) {
+    //item.title = titulo;
+    // item.addEventListener('mouseover', (e) => {
+    //   mostrarTooltip(e, titulo);
+    // });
+    // item.addEventListener('mouseout', () => {
+    //   ocultarTooltip(3000);
+    // });
+    //}
 }
 // 📂 Cargar CSV
 //document.getElementById('fileInput')
@@ -998,6 +1000,7 @@ function mostrarAnteriorCoincidencia() {
 }
 // 🧾 Actualiza la vista del resultado actual
 function actualizarVistaCoincidencia() {
+  segundosTooltip = 2000;
   contador2.textContent = `${coincidencias.length} ${coincidencias.length === 1 ? 'coincidencia' : 'coincidencias'}`;
   if (coincidencias.length > 0) {
     articuloSeleccionado = coincidencias[indiceActual];
@@ -1009,15 +1012,15 @@ function actualizarVistaCoincidencia() {
     precioEncontrado2.textContent = articuloSeleccionado?.PRECIO2 || "-";
     // Luego definimos un tooltip unico para cada elemento
     //asignarTooltipUnico2(id, () => `ID: ${articuloSeleccionado.ID}`);
-    asignarTooltipUnico2(id, () => `ID: ${id.textContent}`);
+    asignarTooltipUnico2(id, () => `ID: ${id.textContent}`, segundosTooltip);
     //asignarTooltipUnico(id,`ID: ${articuloSeleccionado.ID}`);
-    asignarTooltipUnico2(id2, () => `ID: ${id.textContent}`);
-    asignarTooltipUnico2(nombreEncontrado, () => `Producto: ${nombreEncontrado.textContent}`);
-    asignarTooltipUnico2(nombreEncontradoP, () => `Producto: ${nombreEncontrado.textContent}`);
-    asignarTooltipUnico2(precioEncontrado, () => `Precio Venta: ${precioEncontrado.textContent}`);
-    asignarTooltipUnico2(precioEncontradoP, () => `Precio Venta: ${precioEncontrado.textContent}`);
-    asignarTooltipUnico2(precioEncontrado2, () => `Precio Deudor: ${precioEncontrado2.textContent}`);
-    asignarTooltipUnico2(precioEncontrado2P, () => `Precio Deudor: ${precioEncontrado2.textContent}`);
+    asignarTooltipUnico2(id2, () => `ID: ${id.textContent}`, segundosTooltip);
+    asignarTooltipUnico2(nombreEncontrado, () => `Producto: ${nombreEncontrado.textContent}`, segundosTooltip);
+    asignarTooltipUnico2(nombreEncontradoP, () => `Producto: ${nombreEncontrado.textContent}`, segundosTooltip);
+    asignarTooltipUnico2(precioEncontrado, () => `Precio Venta: ${precioEncontrado.textContent}`, segundosTooltip);
+    asignarTooltipUnico2(precioEncontradoP, () => `Precio Venta: ${precioEncontrado.textContent}`, segundosTooltip);
+    asignarTooltipUnico2(precioEncontrado2, () => `Precio Deudor: ${precioEncontrado2.textContent}`, segundosTooltip);
+    asignarTooltipUnico2(precioEncontrado2P, () => `Precio Deudor: ${precioEncontrado2.textContent}`, segundosTooltip);
     asignarTooltipUnico2(resultadoEliminar, () => `Producto: ${nombreEncontrado.textContent}\nId: ${id.textContent}\nPrecio Venta: ${precioEncontrado.textContent}\nPrecio Deudores: ${precioEncontrado2.textContent}`);
     // asignarTooltipUnico2(nombreEncontrado, () => `Producto: ${articuloSeleccionado.PRODUCTO}`);
     // asignarTooltipUnico2(nombreEncontradoP, () => `Producto: ${articuloSeleccionado.PRODUCTO}`);
@@ -1392,27 +1395,36 @@ setTimeout(() => {
   }
 }, 5000);
 // 🔹 Función para asignar un tooltip único a un elemento
-function asignarTooltipUnico2(el, textoFn) {
+function asignarTooltipUnico2(el, textoFn, delay = 2000) {
   if (!el) return;
   el._tieneTooltip = true;
   el.addEventListener('mouseover', e => {
+    clearTimeout(timeoutID);
     mostrarTooltip(e, textoFn());
     e.stopPropagation();
+  });
+  el.addEventListener('mouseout', function() {
+    clearTimeout(timeoutID);
+    timeoutID = setTimeout(ocultarTooltip, delay);
+    //ocultarTooltip(2000);
   });
 }
 // 🔹 Función para asignar un tooltip único a un elemento utilizada por 
 // la funcion que asigna tooltips dentro del modalEliminar
-function asignarTooltipUnico(el, textoFn) {
+function asignarTooltipUnico(el, textoFn, delay = 2000) {
   if (!el || el._tieneTooltip) return;
   el._tieneTooltip = true;
   el.addEventListener('mouseover', e => {
+    clearTimeout(timeoutID);
     const texto = typeof textoFn === 'function' ? textoFn(el) : textoFn;
     mostrarTooltip(e, texto);
     e.stopPropagation();
   });
   //el.addEventListener('mouseout', ocultarTooltip);
   el.addEventListener('mouseout', function() {
-    ocultarTooltip(1000);
+    clearTimeout(timeoutID);
+    timeoutID = setTimeout(ocultarTooltip, delay);
+    //ocultarTooltip(2000);
   });
 }
 
@@ -1420,6 +1432,7 @@ function asignarTooltipUnico(el, textoFn) {
 function asignarTooltipsModalEliminar() {
   //const modal = document.getElementById('modalEliminar');
   if (!modalEliminar) return;
+  segundosTooltip = 2000;
 
   elementos.forEach(el => {
     const id = el.id || el.name || el.textContent?.trim();
@@ -1451,7 +1464,7 @@ function asignarTooltipsModalEliminar() {
     //     textoTooltip = 'Elemento del modal.';
     // }
 
-    asignarTooltipUnico(el, textoTooltip);
+    asignarTooltipUnico(el, textoTooltip, segundosTooltip);
   });
 }
 

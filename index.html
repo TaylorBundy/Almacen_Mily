@@ -35,7 +35,7 @@
     <img id="btnImage" src="icons/search.avif">
     <input type="text" id="searchInput" placeholder="Buscar por nombre o ID" oninput="buscar()" onmouseover="mostrarTooltip(event, TitulosList.searchInput)" onmouseout="ocultarTooltip(2000)">
     <button id="btnAbrirModal" onclick="abrirModal()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioAgregar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/add-item.avif">Agregar artículo</button>
-    <button id="btnAbrirModalEliminar" onclick="abrirModalEliminar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEliminar)" onmouseout="ocultarTooltip()"><img id="btnImage" src="icons/borrar.avif">Eliminar artículo</button>
+    <button id="btnAbrirModalEliminar" onclick="abrirModalEliminar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEliminar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/borrar.avif">Eliminar artículo</button>
     <button id="btnGuardar" onclick="guardarCSV()" onmouseover="mostrarTooltip(event, TitulosList.btnGuardar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/save.avif">Guardar cambios</button>
   </div>
   <div id="contador">Artículos cargados: 0</div>
@@ -61,7 +61,7 @@
     <label class="labelModal">Código Barra:</label>
     <input class="inputNumber" type="number" id="nuevoCodigo" maxlength="13" pattern="\d{0,13}" onkeypress="if(this.value.length==13) return false;" onmouseover="mostrarTooltip(event, TitulosList.codigo); event.stopPropagation();" onmouseout="ocultarTooltip(2000)">
     <label class="labelModal">Nombre Producto:</label>
-    <input type="text" id="nuevoNombre" onmouseover="mostrarTooltip(event, TitulosList.nombre); event.stopPropagation();" onmouseout="ocultarTooltip()">
+    <input type="text" id="nuevoNombre" onmouseover="mostrarTooltip(event, TitulosList.nombre); event.stopPropagation();" onmouseout="ocultarTooltip(2000)">
     <label class="labelModal">Precio Venta:</label>
     <input class="inputNumber" type="text" id="nuevoPrecio1" maxlength="6" onfocus="formatearCampo(this)" onkeypress="if(this.value.length==7) return false;" onmouseover="mostrarTooltip(event, TitulosList.precio1); event.stopPropagation();" onmouseout="ocultarTooltip(2000)">
     <label class="labelModal">Precio Deudor:</label>
