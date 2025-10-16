@@ -1497,8 +1497,8 @@ setTimeout(() => {
   }
   const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
   console.log(cambios);
-  console.log(`FechasViejas: ${FechasViejas}`);
-  console.log(`FechasActuales: ${FechasActuales}`);
+  //console.log(`FechasViejas: ${FechasViejas}`);
+  //console.log(`FechasActuales: ${FechasActuales}`);
   const originalesDiferentes = cambios.map(c => c.original);
   const actualesDiferentes = cambios.map(c => c.nueva);
   if (originalesDiferentes.length > 0) {
@@ -1508,7 +1508,7 @@ setTimeout(() => {
     } else {
       const datosActuales = localStorage.getItem("jsonData");
       mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en LocalStorage procedentes del archivo Original "Lista_Precios.json"<br>Son más antiguos que los datos almacenados en LocalStorage obtenidos de la tabla de artículos`, 'datosOriginales');
-      localStorage.setItem('jsonOriginal', JSON.stringify(datosActuales));
+      localStorage.setItem('jsonOriginal', datosActuales);
     }
   } else {
     console.log('son iguales');
