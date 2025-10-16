@@ -48,9 +48,10 @@ function cargarDesdeLocalStorage() {
     if (datosGuardados) {
       try {
         const lista = JSON.parse(datosGuardados);
+        datos = lista;
         if (Array.isArray(lista) && lista.length > 0) {
-          mostrarTabla(lista);
-          console.log(lista);
+          mostrarTabla(datos);
+          console.log(datos);
           console.log(`✅ Datos cargados desde localStorage (${lista.length} artículos)`);
         } else {
           console.warn("⚠️ No se encontraron artículos válidos en localStorage.");
