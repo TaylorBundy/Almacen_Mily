@@ -155,6 +155,8 @@
 <script src="script.js"></script>
 <script src="cargar_json.js"></script>
 <script>
+  // Ejecutar al cargar la página
+  document.addEventListener('DOMContentLoaded', cargarJSON);
   const fileInput = document.querySelector('#fileInput');
   const boton = document.querySelector("#btnCargar");
   const btnAceptar = document.getElementById("btnAceptar");
