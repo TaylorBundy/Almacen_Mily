@@ -162,6 +162,7 @@
   const btnAceptar = document.getElementById("btnAceptar");
   const btnCancelar = document.getElementById("btnCancelar");
   const csvGuardado = localStorage.getItem("csvData");
+  const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
 
   async function cargarCSV() {
     const OriginalFile = localStorage.getItem(archivoOriginal);
@@ -217,7 +218,6 @@
     } else {
       console.log("Ejecutando desde un servidor (GitHub Pages)");
       desdeDonde = 'web';
-      const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
       //cargarJSON();
     }
     if (csvGuardado || datosGuardados) {
