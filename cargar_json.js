@@ -30,6 +30,7 @@ async function cargarJSON() {
         // Llamamos a mostrarTabla con los datos adaptados
         mostrarTabla(datos);
         console.log(datos);
+        localStorage.setItem('pruebaonline', datos);
 
         return datos; // opcional, si necesitas usar los datos luego
     } catch (err) {
