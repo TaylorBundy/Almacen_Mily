@@ -1338,7 +1338,7 @@ function obtenerFechaMasRecienteFormatoCSV(csvTexto, origenFecha) {
   return `${dia}/${mes}/${año}`;
 }
 // 🔹 Obtener la fecha más reciente del campo "ACTUALIZADO" en un JSON
-function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
+function obtenerFechaMasRecienteFormatoJSON2(jsonData, origenFecha) {
   if (!jsonData || !Array.isArray(jsonData) || jsonData.length === 0) return null;
 
   const fechas = jsonData.map(item => {
@@ -1391,6 +1391,38 @@ function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
 //   }
 //   return resultados;
 // }
+
+function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
+  if (!Array.isArray(jsonData) || jsonData.length === 0) return null;
+
+  const fechas = [];
+
+  jsonData.forEach(item => {
+    const valor = item.ACTUALIZADO?.trim();
+    if (!valor || valor === "0") return; // ignorar vacíos o "0"
+
+    const [dia, mes, año] = valor.split("/").map(Number);
+    if (!dia || !mes || !año) return;
+
+    const fecha = new Date(año, mes - 1, dia);
+    fechas.push(fecha);
+
+    // Guardar en arrays externos si los estás usando
+    if (origenFecha === "original") FechasViejas.push(valor);
+    else if (origenFecha === "nueva") FechasActuales.push(valor);
+  });
+
+  if (!fechas.length) return null;
+
+  const fechaMax = new Date(Math.max(...fechas.map(f => f.getTime())));
+
+  const dia = String(fechaMax.getDate()).padStart(2, "0");
+  const mes = String(fechaMax.getMonth() + 1).padStart(2, "0");
+  const año = fechaMax.getFullYear();
+
+  return `${dia}/${mes}/${año}`;
+}
+
 // Funcion que busca las fechas diferentes
 function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
   const diferentes = [];
