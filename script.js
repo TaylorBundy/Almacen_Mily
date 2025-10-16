@@ -41,6 +41,7 @@ let segundos = 0;
 let origen = null;
 let estadoTooltip = false;
 let mensaje = null;
+let desdeDonde = null;
 const modal = document.getElementById('modal');
 const modalCargar = document.getElementById("modalCargar");
 const modalEliminar = document.getElementById('modalEliminar');
@@ -922,6 +923,7 @@ function SetCookie(data, valor, dias) {
   //document.cookie = nombre + "=" + encodeURIComponent(valor) + ";" + expira + ";path=/";
   localStorage.setItem(data, valor); // Guardar para uso offline futuro
   localStorage.setItem('csvName', archivo); // Guardar para uso offline futuro
+  localStorage.setItem(archivoOriginal, valor); // Guardar para uso offline futuro
 }
 // 🍪 Leer "cookie" (localStorage)
 function getCookie(nombre) {
@@ -1384,4 +1386,12 @@ function asignarTooltipsModalEliminar() {
 
     asignarTooltipUnico(el, textoTooltip);
   });
+}
+
+function esLocal() {
+  // Protocolo 'file:' indica que se abrió desde el disco
+  if (window.location.protocol === 'file:') return true;
+  
+  // HTTPS o HTTP indica que está en un servidor (GitHub Pages, otro host)
+  return false;
 }
