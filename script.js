@@ -156,7 +156,7 @@ function mostrarTooltip(e, texto) {
 // ✖️ Ocultar tooltip
 function ocultarTooltip(tiempoOcultar) {
   if (tiempoOcultar === null) {
-    console.log('nada');
+    //console.log('nada');
   }
   setTimeout(() => {
     estadoTooltip = false;
@@ -847,7 +847,7 @@ function aplicarFormato(elem, idx, campo) {
 }
   // ➕ Agregar artículo nuevo
 function agregarArticulo() {
-  console.log(datos);
+  //console.log(datos);
   let codigo = document.getElementById('nuevoCodigo').value.trim();
   //let nombre = document.getElementById('nuevoNombre')
   nombre = nuevoNombre.value.trim();
@@ -1133,7 +1133,7 @@ function comprobarCambiosCSV() {
     });
 
     const csvActual = lineas.join('\n'); // CSV actual generado
-    console.log(csvActual);
+    //console.log(csvActual);
     const csvGuardado = localStorage.getItem("csvData"); // CSV guardado
 
     if (!csvGuardado) {
@@ -1288,7 +1288,7 @@ const observer = new MutationObserver(mutations => {
       const nuevoTexto = fileName2.textContent.trim();
       if (nuevoTexto) {
         origen = "modalCargado";
-        console.log('es aca');
+        //console.log('es aca');
         //mostrarMensajeOK(`🔄 El texto cambió a: <b>${nuevoTexto}</b>`, "modalCargado");
         mostrarMensajeOK(`${Icons.csv2} Archivo CSV: ${nuevoTexto} cargado y guardado localmente`, origen);
       }
@@ -1351,7 +1351,7 @@ function obtenerFechaMasRecienteFormatoJSON2(jsonData, origenFecha) {
     } else {
       FechasActuales.push(valor);
     }
-    console.log(valor);
+    //console.log(valor);
 
     if (!valor || valor === "0") return null;
 
@@ -1396,7 +1396,7 @@ function obtenerFechaMasRecienteFormatoJSON2(jsonData, origenFecha) {
 
 function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
   //console.log(jsonData);
-  
+
   if (!Array.isArray(jsonData) || jsonData.length === 0) return null;
 
   const fechas = [];
@@ -1448,7 +1448,7 @@ function obtenerFechaMasRecienteJSON(jsonData) {
 
     fechas.push(new Date(año, mes - 1, dia));
   });
-  console.log(fechas);
+  //console.log(fechas);
 
   if (!fechas.length) return null;
 
@@ -1503,11 +1503,11 @@ setTimeout(() => {
     //console.log(datosOriginales);
   }
   const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
-  console.log(cambios);
-  console.log(datos.length);
-  console.log(cantidadActual);
-  console.log(cantidadOriginal);
-  console.log(contador);
+  // console.log(cambios);
+  // console.log(datos.length);
+  // console.log(cantidadActual);
+  // console.log(cantidadOriginal);
+  // console.log(contador);
   //console.log(`FechasViejas: ${FechasViejas}`);
   //console.log(`FechasActuales: ${FechasActuales}`);
   if (cantidadOriginal !== cantidadActual) {
@@ -1523,7 +1523,7 @@ setTimeout(() => {
         localStorage.setItem('jsonOriginal', datosActuales);
       }
     } else {
-      console.log('son iguales');
+      //console.log('son iguales');
     }
   }
 }, 5000);
