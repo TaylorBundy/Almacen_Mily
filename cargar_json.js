@@ -13,7 +13,7 @@ async function cargarJSON2() {
 
   async function cargarJSON() {
     try {
-      const response = await fetch('datos.json'); // Asegurate que esté en la misma carpeta
+      const response = await fetch('Lista_Precios.json'); // Asegurate que esté en la misma carpeta
       if (!response.ok) throw new Error('No se pudo cargar el JSON');
       const json = await response.json();
   
