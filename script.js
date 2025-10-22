@@ -431,7 +431,7 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     const valor = e.target.value.trim().toLowerCase();
     if (!valor) {
         // Si está vacío, mostrar toda la base
-        imgSearch.src = 'Icons/search.avif';
+        imgSearch.src = 'icons/search.avif';
         btnAbrirModalEditar.disabled = false;
         mostrarTabla(datos);
         return;
@@ -447,7 +447,7 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     //console.log(indiceOriginal);
     btnAbrirModalEditar.disabled = true;
     mostrarTabla(filtrados);
-    imgSearch.src = 'Icons/searching.avif';
+    imgSearch.src = 'icons/searching.avif';
 });
 
 // 🔍 Búsqueda (insensible y parcial)
