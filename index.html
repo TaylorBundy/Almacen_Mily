@@ -32,9 +32,10 @@
     </div>
   </div>
   <div class="SearchContainer">
-    <img id="btnImage" src="icons/search.avif">
+    <img id="btnImage" class="searching" src="icons/search.avif">
     <input type="text" id="searchInput" placeholder="Buscar por nombre o ID" oninput="buscar()" onmouseover="mostrarTooltip(event, TitulosList.searchInput)" onmouseout="ocultarTooltip(2000)">
     <button id="btnAbrirModal" onclick="abrirModal()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioAgregar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/add-item.avif">Agregar artículo</button>
+    <button id="btnAbrirModalEditar" onclick="abrirModalEditar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEditar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/edit.avif">Editar artículo</button>
     <button id="btnAbrirModalEliminar" onclick="abrirModalEliminar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEliminar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/borrar.avif">Eliminar artículo</button>
     <button id="btnGuardar" onclick="guardarCSV()" onmouseover="mostrarTooltip(event, TitulosList.btnGuardar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/save.avif">Guardar cambios</button>
   </div>
@@ -72,6 +73,46 @@
         <img id="btnImage" src="icons/limpiar.avif">Limpiar
       </button>
       <button onclick="cerrarModal()" onmouseover="mostrarTooltip(event, TitulosList.btnCancelar); event.stopPropagation();" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/cancel.avif">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="modalEditar" class="modal" style="display:none;">
+  <div id="containerEditar" class="modalContainer">
+    <h3>Editar Artículo</h3>
+
+    <label class="labelModal">Buscar por ID o NOMBRE:</label>
+    <div class="busquedaContainer">
+      <input type="text" id="buscarEditar" placeholder="Ej: 102 o Pan Lactal" onkeyup="buscarArticuloEditar()">
+      <button id="btnAnteriorEditar" title="Anterior">◀</button>
+      <button id="btnSiguienteEditar" title="Siguiente" onclick="mostrarSiguienteCoincidencia2()">▶</button>
+    </div>
+
+    <p id="contadorEditar" class="contadorCoincidencias">0 coincidencias</p>
+
+    <div class="resultadoEditar">
+      <div class="campo">
+        <strong>Id:</strong> <span id="codigoEncontrado">-</span>
+      </div>
+      <div class="campo">
+        <strong>Nombre:</strong> <span id="nombreEncontrado">-</span>
+      </div>
+      <div class="campo">
+        <strong>Precio Venta: <span id="precioEncontrado">-</span> </strong>
+        <input type="text" id="nuevoPrecio1Editar" onfocus="formatearCampo(this)" placeholder="Ej: 3500.00">
+      </div>
+      <div class="campo">
+        <strong>Precio Deudor: <span id="precioEncontrado2">-</span> </strong>
+        <input type="text" id="nuevoPrecio2Editar" onfocus="formatearCampo(this)" placeholder="Ej: 3200.00 (opcional)">
+      </div>
+    </div>
+
+    <div class="btnContainer">
+      <button id="btnGuardarEditar" class="btnAceptar" disabled>
+        <img id="btnImage" src="icons/ok.avif" alt=""> Guardar
+      </button>
+      <button id="btnCancelarEditar" class="btnCancelar" onclick="cerrarModalEditar()" onmouseover="mostrarTooltip(event, TitulosList.btnCancelar); event.stopPropagation();" onmouseout="ocultarTooltip(2000)">
+        <img id="btnImage" src="icons/cancel.avif" alt=""> Cancelar
+      </button>
     </div>
   </div>
 </div>

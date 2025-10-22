@@ -71,13 +71,13 @@ td[contenteditable="true"], .codigoN {
 .codigo, .precio1, .precio2 {
     width: 110px;
 }
-.codigoN:hover, .precio1N:hover, .precio2N:hover {
+/* .codigoN:hover, .precio1N:hover, .precio2N:hover {
     transform: scale(1.2);
     font-weight: bold;
     text-shadow: 0 6px 6px rgba(0, 0, 0, 0.6);
     border-radius: 5px;
     background-color: #fff5c0;
-}
+} */
 .id {
     width: 20px;
 }
@@ -229,3 +229,101 @@ td[contenteditable="true"], .codigoN {
 #fileInput {
     display: none;
 }
+#modalEditar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+  }
+  
+  #containerEditar {
+    background-color: #222;
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    width: 380px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  
+  #containerEditar h3 {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  
+  .busquedaContainer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .busquedaContainer input {
+    flex: 1;
+    padding: 6px;
+    border-radius: 5px;
+    border: none;
+  }
+  
+  .busquedaContainer button {
+    padding: 4px 8px;
+    border: none;
+    background-color: #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .contadorCoincidencias {
+    text-align: center;
+    font-size: 12px;
+    color: #ccc;
+    margin-top: 5px;
+  }
+  
+  .resultadoEditar {
+    background-color: #333;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+  }
+  
+  .resultadoEditar .campo {
+    margin-bottom: 6px;
+  }
+  
+  .resultadoEditar input {
+    width: 100%;
+    padding: 5px;
+    border-radius: 5px;
+    border: none;
+    margin-top: 3px;
+  }
+  
+  .btnContainer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+  }
+  
+  .btnContainer button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+  }
+  
+  /* .btnAceptar {
+    background-color: #3ba55d;
+    color: white;
+  }
+  
+  .btnCancelar {
+    background-color: #f0ad4e;
+    color: white;
+  } */

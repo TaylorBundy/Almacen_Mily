@@ -37,6 +37,7 @@ function cargarDesdeLocalStorage() {
           mostrarTabla(datos);
           cantidadActual = datos.length;
           console.log(`✅ Datos cargados desde localStorage (${lista.length} artículos)`);
+          return datos;
         } else {
           console.warn("⚠️ No se encontraron artículos válidos en localStorage.");
         }

@@ -7,15 +7,20 @@ let cantidadActual = null;
 let cantidadOriginal = null;
 const items = document.getElementById('contador');
 const inputSearch = document.getElementById('searchInput');
+const imgSearch = document.querySelector('.searching');
 const btnAbrirModal = document.getElementById('btnAbrirModal');
+const btnAbrirModalEditar = document.getElementById('btnAbrirModalEditar');
+const btnAbrirModalEliminar = document.getElementById('btnAbrirModalEliminar');
 const btnLimpiar = document.getElementById('btnLimpiar');
 const btnAgregarArticulo = document.getElementById('btnAgregarArticulo');
-const btnAbrirModalEliminar = document.getElementById('btnAbrirModalEliminar');
 const buscarEliminar = document.getElementById('buscarEliminar');
+const buscarEditar = document.getElementById('buscarEditar');
 const btnGuardar = document.getElementById('btnGuardar');
 const nuevoNombre = document.getElementById('nuevoNombre');
 const precio1 = document.getElementById('nuevoPrecio1');
 const precio2 = document.getElementById('nuevoPrecio2');
+const precio1Editar = document.getElementById('nuevoPrecio1Editar');
+const precio2Editar = document.getElementById('nuevoPrecio2Editar');
 const regexPrecio = /^\$\s\d{1,3}(\.\d{3})*,\d{2}$/;
 const fechaActual = new Date().toLocaleDateString();
 let porcentaje = null;
@@ -34,6 +39,8 @@ const csvNombre = 'csvName';
 let coincidencias = [];
 let indiceActual = 0;
 let nuevoIndice = 0;
+let indiceOriginal = null;
+let indicesOriginales = {};
 let intervalId = null; // Guardará el ID del setInterval
 let intentos = 0;
 let estadoTemporizador = false;
@@ -47,10 +54,13 @@ let mensaje = null;
 let desdeDonde = null;
 const modal = document.getElementById('modal');
 const modalCargar = document.getElementById("modalCargar");
+const modalEditar = document.getElementById("modalEditar");
 const modalEliminar = document.getElementById('modalEliminar');
 const containerEliminar = document.getElementById('containerEliminar');
 const contador2 = document.getElementById("contadorCoincidencias");
+const contador3 = document.getElementById("contadorCoincidenciasEditar");
 const btnEliminar = document.getElementById("btnEliminar");
+const btnGuardarEditar = document.getElementById("btnGuardarEditar");
 const btnSiguiente = document.getElementById("btnSiguiente");
 const btnAnterior = document.getElementById("btnAnterior");
 let id = document.getElementById("codigoEncontrado");
@@ -115,12 +125,13 @@ const TitulosList = {
   searchInput: `${Icons.buscar} Buscar artículos por nombre o ID.\nBúsqueda parcial y sin acentos.`,
   porcentajeInput: "➗ Aplicar un porcentaje a todos los precios deudores.\nEjemplo: 10 para aumentar 10%, -5 para reducir 5%.\nValor por defecto: 20%",
   chkPorcentaje: "Activar o ➗desactivar el uso del porcentaje.",
-  btnFormularioAgregar: "💡 Abrir formulario para agregar artículo nuevo.!",
+  btnFormularioAgregar: `💡 Abrir formulario para ${Icons.agregar}"agregar" artículo nuevo.!`,
+  btnFormularioEditar: `💡 Abrir formulario para ${Icons.editar}"editar" artículo.!`,
   btnGuardar: `${Icons.guardar} Guardar los cambios realizados en la base de datos.`,
   btnAgregar: `${Icons.agregar} Agregar el nuevo artículo a la base de datos.`,
   btnCargar: `${Icons.csv}📝📂 Cargar archivo CSV con la base de datos de productos.`,
   btnCancelar: `${Icons.cancelar} Cancelar y cerrar este cuadro.`,
-  btnFormularioEliminar: "💡 Abrir formulario para eliminar artículo.!",
+  btnFormularioEliminar: `💡 Abrir formulario para ${Icons.eliminar}"eliminar" artículo.!`,
   btnEliminar: `${Icons.eliminar} Eliminar el artículo seleccionado de la base de datos.`,
   btnLimpiar: `${Icons.limpiar} Limpiar datos de todos los campos.`,
   btnAnterior: `${Icons.anterior} Mostrar artículo anterior.!`,
@@ -340,18 +351,23 @@ function Titulos(id) {
     segundosTooltip = 1500;
     const item = document.getElementById(`${id}`);
     if (item.className.includes('precio1')) {
-      titulo = `Producto: ${item.previousElementSibling.textContent}\nPrecio: ${item.textContent}`;
+      titulo = `Producto: ${item.previousElementSibling.textContent}\nPrecio Venta: ${item.textContent}\nIndice: ${item.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.textContent}`;
     } else if (item.className.includes('precio2')) {
-      titulo = `Producto: ${item.previousElementSibling.previousElementSibling.textContent}\nPrecio: ${item.textContent}`;
+      titulo = `Producto: ${item.previousElementSibling.previousElementSibling.textContent}\nPrecio Deudores: ${item.textContent}`;
     } else if (item.className.includes('producto')) {
       titulo = `Producto: ${item.textContent}\nId: ${item.previousElementSibling.textContent}\nPrecio Venta: ${item.nextElementSibling.textContent}\nPrecio Deudores: ${item.nextElementSibling.nextElementSibling.textContent}`;
     } else if (item.className.includes('codigo')) {
-      titulo = `Código de barras: ${item.textContent}\n✏️Contenido modificable.!`;
+      titulo = `Código de barras: ${item.textContent}`;
     }
-    asignarTooltipUnico2(item, () => `${titulo}`, segundosTooltip);
-    // item.addEventListener('mouseover', (e) => {
-    //   item.title = titulo;
-    // });
+    //asignarTooltipUnico2(item, () => `${titulo}`, segundosTooltip);
+     item.addEventListener('mouseover', (e) => {
+      const fila3 = e.target.closest("tr"); // la fila sobre la que estás
+      if (!fila3) return;
+
+      const indexOriginal3 = parseInt(fila3.dataset.index, 10);
+      //console.log("Índice original:", indexOriginal3);
+       item.title = titulo;
+     });
     //if (item.onmouseover) {
     //item.title = titulo;
     // item.addEventListener('mouseover', (e) => {
@@ -415,14 +431,23 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     const valor = e.target.value.trim().toLowerCase();
     if (!valor) {
         // Si está vacío, mostrar toda la base
+        imgSearch.src = 'Icons/search.avif';
+        btnAbrirModalEditar.disabled = false;
         mostrarTabla(datos);
         return;
     }
     // Filtrar datos
-    const filtrados = datos.filter(row => {
-        return Object.values(row).some(v => v.toLowerCase().includes(valor));
+    const datosConIndice = datos.map((row, idx) => ({ ...row, _index: idx }));
+    //const filtrados = datos.filter(row => {
+      const filtrados = datosConIndice.filter(row => {
+        //return Object.values(row).some(v => v.toLowerCase().includes(valor));
+        return Object.values(row).some(v => String(v).toLowerCase().includes(valor));
     });
+    //indiceOriginal = filtrados[0]._index;
+    //console.log(indiceOriginal);
+    btnAbrirModalEditar.disabled = true;
     mostrarTabla(filtrados);
+    imgSearch.src = 'Icons/searching.avif';
 });
 
 // 🔍 Búsqueda (insensible y parcial)
@@ -453,17 +478,22 @@ function mostrarTabla(lista) {
   const tbody = document.querySelector('#tabla tbody');
   tbody.innerHTML = '';
   lista.forEach((r, idx) => {
+    const indice = r._index ?? idx; // usa el original si existe
     const fila = document.createElement('tr');
+    fila.dataset.index = indice; // ← almacena el índice original
     fila.innerHTML = `
       <td class="indice">${idx + 1}</td>
-      <td class="codigoN" id="codigo${idx + 1}" contenteditable="true" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
+      <td class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
       <td class="id">${r.ID || ''}</td>
       <td class="producto" id="producto${idx + 1}" onmouseover="Titulos(this.id)">${r.PRODUCTO || ''}</td>
-      <td class="precio1N" id="precio-${idx + 1}" contenteditable="true" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id)">${r.PRECIO || ''}</td>
-      <td class="precio2N" id="precio2-${idx + 1}" contenteditable="true" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
+      <td class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id)">${r.PRECIO || ''}</td>
+
+      <td class="precio2N" id="precio2-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
       <td class="fecha">${r.ACTUALIZADO || ''}</td>
     `;
     tbody.appendChild(fila);
+    //indicesOriginales = {indices: indice, ids: r.ID};
+    //console.log(`indice: ${indicesOriginales.indices} - id: ${indicesOriginales.ids}`);
   });
 
   document.getElementById('contador').innerText = `Artículos cargados: ${lista.length}`;
@@ -478,6 +508,9 @@ function mostrarTabla(lista) {
     btnGuardar.disabled = false;
     btnGuardar.style.cursor = 'pointer';
   }
+  //indicesOriginales.forEach( ind => {
+    //console.log(`indice: ${indicesOriginales.indices} - id: ${indicesOriginales.ids}`);
+  //});
 }
 chkPorcentaje.addEventListener("change", () => {
   if (chkPorcentaje.checked) {
@@ -524,7 +557,7 @@ function editar(idx, campo, valor) {
       if (!estadoTemporizador) {
         iniciarCSVTemporizador(3500);
       }
-    }, 1000);
+    }, 3000);
     //return;
   }
   datos[idx][campo] = valor;
@@ -638,8 +671,29 @@ document.addEventListener('keydown', function(e) {
     if (modalEliminar && modalEliminar.style.display === 'flex') {
       cerrarModalEliminar(); // 👈 usa tu función existente
     }
+    if (modalEditar && modalEditar.style.display === 'flex') {
+      cerrarModalEditar(); // 👈 usa tu función existente
+    }
   }
 });
+function abrirModalEditar() {
+  ocultarTooltip(0);
+  document.getElementById("modalEditar").style.display = "flex";
+  if (buscarEditar.value === '') {
+    precio1Editar.disabled = true;
+    precio2Editar.disabled = true;
+  }
+  actualizarVistaCoincidencia(modalEditar);
+}
+
+function cerrarModalEditar() {
+  document.getElementById("modalEditar").style.display = "none";
+  coincidencias = [];
+  articuloSeleccionado = null;
+  indiceActual = 0;
+  limpiarInputs('#modalEditar');
+}
+
 // 🚪 Abrir/Cerrar modal eliminar articulo
 // function abrirModalEliminar2() {
 //   origen = "modalEliminar";
@@ -728,7 +782,7 @@ function abrirModalEliminar() {
       }
     }
   }, 10000);
-  actualizarVistaCoincidencia();
+  actualizarVistaCoincidencia(modalEliminar);
 }
 
 // 👤 Si el usuario interactúa, marcamos como activo y cancelamos el cierre
@@ -828,6 +882,14 @@ precio1.addEventListener('blur', function() {
 // 💲 Formatear al perder foco (onblur) en el modal
 precio2.addEventListener('blur', function() {
   precio2.value = formatearPrecio2(precio2.value);
+})
+// 💲 Formatear al perder foco (onblur) en el modal
+precio1Editar.addEventListener('blur', function() {
+  precio1Editar.value = formatearPrecio2(precio1Editar.value);
+})
+// 💲 Formatear al perder foco (onblur) en el modal
+precio2Editar.addEventListener('blur', function() {
+  precio2Editar.value = formatearPrecio2(precio2Editar.value);
 })
 // 🧾 Formatear número como moneda estilo "$ 2.300,00"
 function formatearPrecio2(valor) {
@@ -967,7 +1029,24 @@ function comprobarCSV() {
   // Retornar true si hay datos válidos
   return true;
 }
+// 🔍 Buscar artículo para eliminar
+function buscarArticuloEditar() {
+  const busqueda = document.getElementById("buscarEditar").value.toLowerCase().trim();
 
+  coincidencias = datos.filter(obj =>
+    obj.ID?.toString().includes(busqueda) ||
+    obj.PRODUCTO?.toLowerCase().includes(busqueda)
+  );
+  indiceActual = 0;
+  //console.log(coincidencias);
+  if (precio1Editar.disabled) {
+    precio1Editar.disabled = false;
+  }
+  if (precio2Editar.disabled) {
+    precio2Editar.disabled = false;
+  }
+  actualizarVistaCoincidencia(modalEditar);
+}
 // 🔍 Buscar artículo para eliminar
 function buscarArticuloEliminar() {
   const busqueda = document.getElementById("buscarEliminar").value.toLowerCase().trim();
@@ -977,7 +1056,7 @@ function buscarArticuloEliminar() {
     obj.PRODUCTO?.toLowerCase().includes(busqueda)
   );
   indiceActual = 0;
-  actualizarVistaCoincidencia();
+  actualizarVistaCoincidencia(modalEliminar);
 }
 // ⏭️ Mostrar siguiente coincidencia
 function mostrarSiguienteCoincidencia() {
@@ -988,7 +1067,18 @@ function mostrarSiguienteCoincidencia() {
     btnSiguiente.disabled = true;
     btnSiguiente.style.cursor = 'not-allowed';
   }
-  actualizarVistaCoincidencia();
+  actualizarVistaCoincidencia(modalEliminar);
+}
+// ⏭️ Mostrar siguiente coincidencia
+function mostrarSiguienteCoincidencia2() {
+  if (coincidencias.length === 0) return;
+  indiceActual = (indiceActual + 1) % coincidencias.length; // Avanza circularmente
+  nuevoIndice = indiceActual + 1;
+  if (nuevoIndice === coincidencias.length) {
+    btnSiguiente.disabled = true;
+    btnSiguiente.style.cursor = 'not-allowed';
+  }
+  actualizarVistaCoincidencia(modalEditar);
 }
 // ⏭️ Mostrar siguiente coincidencia
 function mostrarAnteriorCoincidencia() {
@@ -999,72 +1089,166 @@ function mostrarAnteriorCoincidencia() {
     btnAnterior.disabled = true;
     btnAnterior.style.cursor = 'not-allowed';
   }
-  actualizarVistaCoincidencia();
+  actualizarVistaCoincidencia(modalEliminar);
 }
 // 🧾 Actualiza la vista del resultado actual
-function actualizarVistaCoincidencia() {
+// function actualizarVistaCoincidencia2() {
+//   segundosTooltip = 2000;
+//   if (modalEliminar.style.display === 'flex') {
+//     contador2.textContent = `${coincidencias.length} ${coincidencias.length === 1 ? 'coincidencia' : 'coincidencias'}`;
+//     contador3.textContent = `${coincidencias.length} ${coincidencias.length === 1 ? 'coincidencia' : 'coincidencias'}`;
+//     if (coincidencias.length > 0) {
+//       articuloSeleccionado = coincidencias[indiceActual];
+//       //if (articuloSeleccionado) {
+//       // Primero definimos los valores de cada textContent
+//       id.textContent = articuloSeleccionado?.ID || "-";
+//       nombreEncontrado.textContent = articuloSeleccionado?.PRODUCTO || "-";
+//       precioEncontrado.textContent = articuloSeleccionado?.PRECIO || "-";
+//       precioEncontrado2.textContent = articuloSeleccionado?.PRECIO2 || "-";
+//       // Luego definimos un tooltip unico para cada elemento
+//       //asignarTooltipUnico2(id, () => `ID: ${articuloSeleccionado.ID}`);
+//       asignarTooltipUnico2(id, () => `ID: ${id.textContent}`, segundosTooltip);
+//       //asignarTooltipUnico(id,`ID: ${articuloSeleccionado.ID}`);
+//       asignarTooltipUnico2(id2, () => `ID: ${id.textContent}`, segundosTooltip);
+//       asignarTooltipUnico2(nombreEncontrado, () => `Producto: ${nombreEncontrado.textContent}`, segundosTooltip);
+//       asignarTooltipUnico2(nombreEncontradoP, () => `Producto: ${nombreEncontrado.textContent}`, segundosTooltip);
+//       asignarTooltipUnico2(precioEncontrado, () => `Precio Venta: ${precioEncontrado.textContent}`, segundosTooltip);
+//       asignarTooltipUnico2(precioEncontradoP, () => `Precio Venta: ${precioEncontrado.textContent}`, segundosTooltip);
+//       asignarTooltipUnico2(precioEncontrado2, () => `Precio Deudor: ${precioEncontrado2.textContent}`, segundosTooltip);
+//       asignarTooltipUnico2(precioEncontrado2P, () => `Precio Deudor: ${precioEncontrado2.textContent}`, segundosTooltip);
+//       asignarTooltipUnico2(resultadoEliminar, () => `Producto: ${nombreEncontrado.textContent}\nId: ${id.textContent}\nPrecio Venta: ${precioEncontrado.textContent}\nPrecio Deudores: ${precioEncontrado2.textContent}`);
+//       // asignarTooltipUnico2(nombreEncontrado, () => `Producto: ${articuloSeleccionado.PRODUCTO}`);
+//       // asignarTooltipUnico2(nombreEncontradoP, () => `Producto: ${articuloSeleccionado.PRODUCTO}`);
+//       // asignarTooltipUnico2(precioEncontrado, () => `Precio Venta: ${articuloSeleccionado.PRECIO}`);
+//       // asignarTooltipUnico2(precioEncontradoP, () => `Precio Venta: ${articuloSeleccionado.PRECIO}`);
+//       // asignarTooltipUnico2(precioEncontrado2, () => `Precio Deudor: ${articuloSeleccionado.PRECIO2}`);
+//       // asignarTooltipUnico2(precioEncontrado2P, () => `Precio Deudor: ${articuloSeleccionado.PRECIO2}`);
+//       // asignarTooltipUnico2(resultadoEliminar, () => `Producto: ${articuloSeleccionado.PRODUCTO}\nId: ${articuloSeleccionado.ID}\nPrecio Venta: ${articuloSeleccionado.PRECIO}\nPrecio Deudores: ${articuloSeleccionado.PRECIO2}`);
+//       btnEliminar.disabled = false;
+//       btnEliminar.style.cursor = 'pointer';
+//       if (nuevoIndice < coincidencias.length) {
+//         btnSiguiente.disabled = coincidencias.length <= 1;
+//         btnSiguiente.style.cursor = 'pointer';
+//       }
+//       if (coincidencias.length === 1) {
+//         btnSiguiente.disabled = true;
+//         btnSiguiente.title = 'No hay más coincidencias';
+//         btnSiguiente.style.cursor = 'not-allowed';
+//       }
+//       if (indiceActual > 0) {
+//         btnAnterior.disabled = false;
+//         btnAnterior.style.cursor = 'pointer';
+//       }
+//     } else {
+//       //elementos.forEach(el => el && (el._tieneTooltip = false));
+//       articuloSeleccionado = null;
+//       document.getElementById("codigoEncontrado").textContent = "-";
+//       document.getElementById("nombreEncontrado").textContent = "-";
+//       document.getElementById("precioEncontrado").textContent = "-";
+//       document.getElementById("precioEncontrado2").textContent = "-";
+//       btnEliminar.disabled = true;
+//       btnEliminar.style.cursor = 'not-allowed';
+//       btnSiguiente.disabled = true;
+//       btnSiguiente.style.cursor = 'not-allowed';
+//       if (indiceActual === 0) {
+//         btnAnterior.disabled = true;
+//         btnAnterior.style.cursor = 'not-allowed';
+//       }
+//       asignarTooltipsModalEliminar();
+//     }
+//   }
+// }
+
+function actualizarVistaCoincidencia(modalActivo) {
   segundosTooltip = 2000;
-  contador2.textContent = `${coincidencias.length} ${coincidencias.length === 1 ? 'coincidencia' : 'coincidencias'}`;
-  if (coincidencias.length > 0) {
-    articuloSeleccionado = coincidencias[indiceActual];
-    //if (articuloSeleccionado) {
-    // Primero definimos los valores de cada textContent
-    id.textContent = articuloSeleccionado?.ID || "-";
-    nombreEncontrado.textContent = articuloSeleccionado?.PRODUCTO || "-";
-    precioEncontrado.textContent = articuloSeleccionado?.PRECIO || "-";
-    precioEncontrado2.textContent = articuloSeleccionado?.PRECIO2 || "-";
-    // Luego definimos un tooltip unico para cada elemento
-    //asignarTooltipUnico2(id, () => `ID: ${articuloSeleccionado.ID}`);
-    asignarTooltipUnico2(id, () => `ID: ${id.textContent}`, segundosTooltip);
-    //asignarTooltipUnico(id,`ID: ${articuloSeleccionado.ID}`);
-    asignarTooltipUnico2(id2, () => `ID: ${id.textContent}`, segundosTooltip);
-    asignarTooltipUnico2(nombreEncontrado, () => `Producto: ${nombreEncontrado.textContent}`, segundosTooltip);
-    asignarTooltipUnico2(nombreEncontradoP, () => `Producto: ${nombreEncontrado.textContent}`, segundosTooltip);
-    asignarTooltipUnico2(precioEncontrado, () => `Precio Venta: ${precioEncontrado.textContent}`, segundosTooltip);
-    asignarTooltipUnico2(precioEncontradoP, () => `Precio Venta: ${precioEncontrado.textContent}`, segundosTooltip);
-    asignarTooltipUnico2(precioEncontrado2, () => `Precio Deudor: ${precioEncontrado2.textContent}`, segundosTooltip);
-    asignarTooltipUnico2(precioEncontrado2P, () => `Precio Deudor: ${precioEncontrado2.textContent}`, segundosTooltip);
-    asignarTooltipUnico2(resultadoEliminar, () => `Producto: ${nombreEncontrado.textContent}\nId: ${id.textContent}\nPrecio Venta: ${precioEncontrado.textContent}\nPrecio Deudores: ${precioEncontrado2.textContent}`);
-    // asignarTooltipUnico2(nombreEncontrado, () => `Producto: ${articuloSeleccionado.PRODUCTO}`);
-    // asignarTooltipUnico2(nombreEncontradoP, () => `Producto: ${articuloSeleccionado.PRODUCTO}`);
-    // asignarTooltipUnico2(precioEncontrado, () => `Precio Venta: ${articuloSeleccionado.PRECIO}`);
-    // asignarTooltipUnico2(precioEncontradoP, () => `Precio Venta: ${articuloSeleccionado.PRECIO}`);
-    // asignarTooltipUnico2(precioEncontrado2, () => `Precio Deudor: ${articuloSeleccionado.PRECIO2}`);
-    // asignarTooltipUnico2(precioEncontrado2P, () => `Precio Deudor: ${articuloSeleccionado.PRECIO2}`);
-    // asignarTooltipUnico2(resultadoEliminar, () => `Producto: ${articuloSeleccionado.PRODUCTO}\nId: ${articuloSeleccionado.ID}\nPrecio Venta: ${articuloSeleccionado.PRECIO}\nPrecio Deudores: ${articuloSeleccionado.PRECIO2}`);
-    btnEliminar.disabled = false;
-    btnEliminar.style.cursor = 'pointer';
-    if (nuevoIndice < coincidencias.length) {
+
+  // Determinar si el modal está visible
+  if (modalActivo.style.display === 'flex') {
+    const esEliminar = modalActivo.id === 'modalEliminar';
+    const esEditar = modalActivo.id === 'modalEditar';
+
+    // Asignar referencias a elementos según el modal
+    const contador = modalActivo.querySelector('.contadorCoincidencias');
+    const idEl = modalActivo.querySelector('#codigoEncontrado');
+    const nombreEl = modalActivo.querySelector('#nombreEncontrado');
+    const precio1El = modalActivo.querySelector('#precioEncontrado');
+    const precio2El = modalActivo.querySelector('#precioEncontrado2');
+
+    // Botones
+    //const btnPrincipal = modalActivo.querySelector('.btn-principal'); // eliminar o guardar
+    //const btnAnterior = modalActivo.querySelector('.btn-anterior');
+    //const btnSiguiente = modalActivo.querySelector('.btn-siguiente');
+    let btnPrincipal;
+
+    // Actualizar contador
+    if (contador) {
+      contador.textContent = `${coincidencias.length} ${coincidencias.length === 1 ? 'coincidencia' : 'coincidencias'}`;
+    }
+
+    if (coincidencias.length > 0) {
+      articuloSeleccionado = coincidencias[indiceActual];
+
+      idEl.textContent = articuloSeleccionado?.ID || "-";
+      nombreEl.textContent = articuloSeleccionado?.PRODUCTO || "-";
+      precio1El.textContent = articuloSeleccionado?.PRECIO || "-";
+      precio2El.textContent = articuloSeleccionado?.PRECIO2 || "-";
+
+      // Si es modal de eliminar → los precios son texto
+      // Si es modal de editar → los precios son inputs editables
+      if (esEliminar) {
+        btnPrincipal = modalActivo.querySelector('.btnEliminar'); // eliminar o guardar
+        precio1El.textContent = articuloSeleccionado?.PRECIO || "-";
+        precio2El.textContent = articuloSeleccionado?.PRECIO2 || "-";
+      } else if (esEditar) {
+        btnPrincipal = modalActivo.querySelector('.btnGuardarEditar'); // eliminar o guardar
+        precio1El.value = articuloSeleccionado?.PRECIO?.replace(/[^\d.,]/g, '') || "";
+        precio2El.value = articuloSeleccionado?.PRECIO2?.replace(/[^\d.,]/g, '') || "";
+      }
+
+      // Activar tooltips
+      asignarTooltipUnico2(idEl, () => `ID: ${idEl.textContent}`, segundosTooltip);
+      asignarTooltipUnico2(nombreEl, () => `Producto: ${nombreEl.textContent}`, segundosTooltip);
+      asignarTooltipUnico2(precio1El, () => `Precio Venta: ${precio1El.textContent}`, segundosTooltip);
+      asignarTooltipUnico2(precio2El, () => `Precio Deudor: ${precio2El.textContent}`, segundosTooltip);
+
+      if (esEliminar) {
+        //asignarTooltipUnico2(precio1El, () => `Precio Venta: ${precio1El.textContent}`, segundosTooltip);
+        //asignarTooltipUnico2(precio2El, () => `Precio Deudor: ${precio2El.textContent}`, segundosTooltip);
+        btnEliminar.disabled = false;
+        btnEliminar.style.cursor = 'pointer';
+      } else if (esEditar) {
+        //asignarTooltipUnico2(precio1El, () => `Precio Venta actual: ${precio1El.value}`, segundosTooltip);
+        //asignarTooltipUnico2(precio2El, () => `Precio Deudor actual: ${precio2El.value}`, segundosTooltip);
+        btnGuardarEditar.disabled = false;
+        btnGuardarEditar.style.cursor = 'pointer';
+      }
+
+      // Habilitar botones
+      //btnPrincipal.disabled = false;
+      //btnPrincipal.style.cursor = 'pointer';
+      btnEliminar.disabled = false;
+      btnEliminar.style.cursor = 'pointer';
       btnSiguiente.disabled = coincidencias.length <= 1;
-      btnSiguiente.style.cursor = 'pointer';
+      btnAnterior.disabled = indiceActual === 0;
+
+    } else {
+      articuloSeleccionado = null;
+      idEl.textContent = nombreEl.textContent = precio1El.textContent = precio2El.textContent = "-";
+      //btnPrincipal.disabled = true;
+      //btnPrincipal.style.cursor = 'not-allowed';
+      if (esEliminar) {
+        btnEliminar.disabled = true;
+        btnEliminar.style.cursor = 'not-allowed';
+      } else if (esEditar) {
+        btnGuardarEditar.disabled = true;
+        btnGuardarEditar.style.cursor = 'not-allowed';
+      }
+      btnSiguiente.disabled = btnAnterior.disabled = true;
+      asignarTooltipsModalEliminar();
     }
-    if (coincidencias.length === 1) {
-      btnSiguiente.disabled = true;
-      btnSiguiente.title = 'No hay más coincidencias';
-      btnSiguiente.style.cursor = 'not-allowed';
-    }
-    if (indiceActual > 0) {
-      btnAnterior.disabled = false;
-      btnAnterior.style.cursor = 'pointer';
-    }
-  } else {
-    //elementos.forEach(el => el && (el._tieneTooltip = false));
-    articuloSeleccionado = null;
-    document.getElementById("codigoEncontrado").textContent = "-";
-    document.getElementById("nombreEncontrado").textContent = "-";
-    document.getElementById("precioEncontrado").textContent = "-";
-    document.getElementById("precioEncontrado2").textContent = "-";
-    btnEliminar.disabled = true;
-    btnEliminar.style.cursor = 'not-allowed';
-    btnSiguiente.disabled = true;
-    btnSiguiente.style.cursor = 'not-allowed';
-    if (indiceActual === 0) {
-      btnAnterior.disabled = true;
-      btnAnterior.style.cursor = 'not-allowed';
-    }
-    asignarTooltipsModalEliminar();
   }
 }
+
 // 🗑️ Eliminar artículo actual
 function eliminarArticuloSeleccionado() {
   if (!articuloSeleccionado) return;
@@ -1078,7 +1262,7 @@ function eliminarArticuloSeleccionado() {
     // Quitar del array de coincidencias y actualizar
     coincidencias.splice(indiceActual, 1);
     if (indiceActual >= coincidencias.length) indiceActual = 0;
-    actualizarVistaCoincidencia();
+    actualizarVistaCoincidencia(modalEliminar);
     //mostrarMensajeOK(`✖️ Artículo: ${articuloSeleccionado.PRODUCTO} eliminado correctamente.!`, "modalEliminar");
     cerrarModalEliminar();
     if (!estadoTemporizador) {
@@ -1491,6 +1675,7 @@ setTimeout(() => {
     const lineas = csvDataOriginal.split(/\r?\n/).filter(l => l.trim() !== '');
     cantidadOriginal = lineas.length - 1;
     //console.log(csvData);
+    //console.log(csvDataOriginal);
   } else {
     const datosActuales = localStorage.getItem("jsonData");
     const datosOriginales = localStorage.getItem("jsonOriginal");
@@ -1564,7 +1749,7 @@ function asignarTooltipUnico(el, textoFn, delay = 2000) {
 // 🔹 Función para asignar tooltips dentro del modalEliminar
 function asignarTooltipsModalEliminar() {
   //const modal = document.getElementById('modalEliminar');
-  if (!modalEliminar) return;
+  if (!modalEliminar || !modalEditar) return;
   segundosTooltip = 2000;
 
   elementos.forEach(el => {
@@ -1608,3 +1793,81 @@ function esLocal() {
   // HTTPS o HTTP indica que está en un servidor (GitHub Pages, otro host)
   return false;
 }
+
+document.querySelector("#tabla tbody").addEventListener("click", e => {
+  const fila = e.target.closest("tr"); // detecta la fila clickeada
+  if (!fila) return;
+
+  indiceOriginal = parseInt(fila.dataset.index, 10); // toma el índice original
+  console.log("✅ Índice original seleccionado:", indiceOriginal);
+
+  // Podés llamar a otra función si querés hacer algo más:
+  manejarSeleccionArticulo(indiceOriginal);
+});
+
+
+function manejarSeleccionArticulo(idx) {
+  const articulo = datos[idx];
+  if (!articulo) return;
+
+  console.log("Artículo seleccionado:", articulo.PRODUCTO);
+  // acá podés abrir un modal, editar, eliminar, etc.
+}
+
+// 🔧 Referencias al modal
+//const modalEditar = document.getElementById("modalEditar");
+//const idEditar = modalEditar.querySelector(".campo-id");
+//const nombreEditar = modalEditar.querySelector(".campo-nombre");
+//const precioVentaEditar = modalEditar.querySelector(".campo-precio1");
+//const precioDeudorEditar = modalEditar.querySelector(".campo-precio2");
+const btnGuardarCambios = document.getElementById("btnGuardarEditar");
+
+// 🧾 Guardar cambios
+btnGuardarCambios.addEventListener("click", () => {
+  if (!articuloSeleccionado) return;
+
+  // Buscar el artículo original en el array principal por su ID
+  const indice = datos.findIndex(a => a.ID == articuloSeleccionado.ID);
+  let precio2 = precio2Editar.value.trim();
+  if (!precio2) precio2 = '0';
+  console.log(indice);
+  if (precio1Editar.value.trim() === "") {
+    mostrarMensajeOK("⚠️ Ambos campos de precio deben estar completos.", "modalEditar");
+    return;
+  }
+  if (!esPrecioValido(precio2)) {
+    precio2 = formatearPrecio(precio2);
+  } else {
+    precio2 = precio2;
+  }
+  // if (precio2Editar.value.trim() === "") {
+  //   precio2Editar.value = '0';
+  // }
+  editar(indice, 'PRECIO', precio1Editar.value.trim());
+  editar(indice, 'PRECIO2', precio2);
+  // if (indice === -1) return;
+
+  // // Tomar los nuevos valores del modal
+  // const nuevoPrecio = precio1Editar.value.trim();
+  // const nuevoPrecio2 = precio2Editar.value.trim();
+
+  // // Actualizar en el array principal
+  // datos[indice].PRECIO = formatearPrecio2(nuevoPrecio); // si ya tenés una función para formatear
+  // datos[indice].PRECIO2 = formatearPrecio2(nuevoPrecio2);
+
+  // // ✅ También actualizamos en la tabla directamente (sin recargar)
+  // const fila = document.querySelector(`tr[data-id="${articuloSeleccionado.ID}"]`);
+  // if (fila) {
+  //   const celdas = fila.querySelectorAll("td");
+  //   // Suponiendo que las columnas son: ID | PRODUCTO | PRECIO | PRECIO2 | ACTUALIZADO
+  //   celdas[4].textContent = datos[indice].PRECIO;
+  //   celdas[5].textContent = datos[indice].PRECIO2;
+  //   celdas[6].textContent = new Date().toLocaleDateString("es-AR");
+  // }
+
+  // Mostrar mensaje
+  mostrarMensajeOK(`✅ Artículo: ${articuloSeleccionado.PRODUCTO} actualizado correctamente`, "modalAgregar");
+
+  // Cerrar modal
+  modalEditar.style.display = "none";
+});
