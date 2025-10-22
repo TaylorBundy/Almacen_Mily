@@ -221,7 +221,7 @@
       method: "POST",
       headers: {
         "Accept": "application/vnd.github.everest-preview+json",
-        "Authorization": `token ${secrets.GH_TOKEN}`,
+        "Authorization": `token ${ secrets.GITHUB_TOKEN }`,
       },
       body: JSON.stringify({
         event_type: "actualizar-json",
