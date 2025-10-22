@@ -39,6 +39,7 @@
     <button id="btnAbrirModalEditar" onclick="abrirModalEditar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEditar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/edit.avif">Editar artículo</button>
     <button id="btnAbrirModalEliminar" onclick="abrirModalEliminar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEliminar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/borrar.avif">Eliminar artículo</button>
     <button id="btnGuardar" onclick="guardarCSV()" onmouseover="mostrarTooltip(event, TitulosList.btnGuardar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/save.avif">Guardar cambios</button>
+    <button id="btnGuardar" onclick="guardarEnGitHub()" onmouseover="mostrarTooltip(event, TitulosList.btnGuardar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/save.avif">Guardar cambios</button>
   </div>
   <div id="contador">Artículos cargados: 0</div>
   <table id="tabla">
@@ -211,6 +212,29 @@
   const csvGuardado = localStorage.getItem("csvData");
   //const csvGuardado = localStorage.getItem("csvData");
   //const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
+
+  async function guardarEnGitHub() {
+    const token = "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"; // ⚠️ Nunca pongas esto en público
+    const repo = "TaylorBundy/Almacen_Mily";
+    const contenido = localStorage.getItem("jsonData"); // Ejemplo de tu tabla
+
+    await fetch(`https://api.github.com/repos/${repo}/dispatches`, {
+      method: "POST",
+      headers: {
+        "Accept": "application/vnd.github.everest-preview+json",
+        "Authorization": `token ${token}`,
+      },
+      body: JSON.stringify({
+        event_type: "actualizar-json",
+        client_payload: {
+          contenido: contenido
+        }
+      })
+    });
+
+    alert("✅ Se envió la actualización a GitHub");
+  }
+
 
   async function cargarCSV() {
     const OriginalFile = localStorage.getItem(archivoOriginal);
