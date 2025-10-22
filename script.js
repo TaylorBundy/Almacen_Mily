@@ -637,7 +637,71 @@ function moverCursorAlFinal(elemento) {
   seleccion.addRange(rango);
 }
 // 💾 Guardar CSV actualizado (sin confirmación, solo muestra si fue OK)
-function guardarCSV() {
+function guardarCSV(tipo = "csv") {
+  if (esLocal()) {
+    tipo = 'csv';
+  } else {
+    tipo = 'json';
+  }
+  origen = "modalGuardar";
+  if (!datos.length) return;
+
+  let blob, nombreFinal, contenidoTexto;
+
+  // Asegurar que el nombre base no tenga carpeta
+  nombre = 'Lista_Precios';
+  //nombre = nombre.replace(/.*[\/\\]/, '');
+  const baseNombre = nombre.replace(/\.[^/.]+$/, ''); // sin extensión
+
+  if (tipo === "json") {
+    // 🟢 Guardar como JSON
+    contenidoTexto = JSON.stringify(datos, null, 2);
+    blob = new Blob([contenidoTexto], { type: "application/json;charset=utf-8;" });
+    nombreFinal = `${baseNombre}.json`;
+
+  } else {
+    // 🟡 Guardar como CSV
+    const separador = ';';
+    const columnas = headers;
+    const lineas = [columnas.join(separador)];
+
+    datos.forEach(obj => {
+      const fila = columnas.map(c => {
+        const valor = (obj[c] || '').toString().replace(/"/g, '');
+        return `${valor}`;
+      }).join(separador);
+      lineas.push(fila);
+    });
+
+    contenidoTexto = lineas.join('\n');
+    blob = new Blob([contenidoTexto], { type: "text/csv;charset=utf-8;" });
+    nombreFinal = `${baseNombre}.csv`;
+  }
+
+  try {
+    // 🧩 Crear descarga automática
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreFinal;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // 🍪 Guardar copia en cookie (solo si es CSV)
+    if (tipo === "csv") SetCookie('csvData', contenidoTexto, 30);
+
+    // 🟢 Mensaje visual de éxito
+    mostrarMensajeOK(`Archivo ${tipo.toUpperCase()} guardado correctamente ✅`, origen);
+
+  } catch (err) {
+    console.error(`❌ Error al guardar el archivo ${tipo}:`, err);
+  }
+}
+
+function guardarCSV2() {
   origen = "modalGuardar";
   if (!datos.length) return; // no hay datos, no hace nada
 
