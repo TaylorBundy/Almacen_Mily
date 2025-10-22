@@ -39,7 +39,7 @@
     <button id="btnAbrirModalEditar" onclick="abrirModalEditar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEditar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/edit.avif">Editar artículo</button>
     <button id="btnAbrirModalEliminar" onclick="abrirModalEliminar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEliminar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/borrar.avif">Eliminar artículo</button>
     <button id="btnGuardar" onclick="guardarCSV()" onmouseover="mostrarTooltip(event, TitulosList.btnGuardar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/save.avif">Guardar cambios</button>
-    <button id="btnGuardar2" onclick="guardarEnGitHub()" onmouseover="mostrarTooltip(event, TitulosList.btnGuardar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/save.avif">Guardar cambios GitHub</button>
+    <!-- <button id="btnGuardar2" onclick="guardarEnGitHub()" onmouseover="mostrarTooltip(event, TitulosList.btnGuardar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/save.avif">Guardar cambios GitHub</button> -->
   </div>
   <div id="contador">Artículos cargados: 0</div>
   <table id="tabla">
@@ -213,53 +213,53 @@
   //const csvGuardado = localStorage.getItem("csvData");
   //const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
 
-  async function guardarEnGitHub2() {
-    const repo = "TaylorBundy/Almacen_Mily";
-    const contenido = localStorage.getItem("jsonData"); // Ejemplo de tu tabla
+  // async function guardarEnGitHub2() {
+  //   const repo = "TaylorBundy/Almacen_Mily";
+  //   const contenido = localStorage.getItem("jsonData"); // Ejemplo de tu tabla
 
-    await fetch(`https://api.github.com/repos/${repo}/dispatches`, {
-      method: "POST",
-      headers: {
-        "Accept": "application/vnd.github.everest-preview+json",
-        "Authorization": `token ${ secrets.GITHUB_TOKEN }`,
-      },
-      body: JSON.stringify({
-        event_type: "actualizar-json",
-        client_payload: {
-          contenido: contenido
-        }
-      })
-    });
+  //   await fetch(`https://api.github.com/repos/${repo}/dispatches`, {
+  //     method: "POST",
+  //     headers: {
+  //       "Accept": "application/vnd.github.everest-preview+json",
+  //       "Authorization": `token ${ secrets.GITHUB_TOKEN }`,
+  //     },
+  //     body: JSON.stringify({
+  //       event_type: "actualizar-json",
+  //       client_payload: {
+  //         contenido: contenido
+  //       }
+  //     })
+  //   });
 
-    alert("✅ Se envió la actualización a GitHub");
-  }
-  async function guardarEnGitHub() {
-    const repo = "TaylorBundy/Almacen_Mily"; // tu repo
-    const workflow = "actualizar-json.yml"; // nombre del workflow
-    const contenido = localStorage.getItem("jsonData"); // tu JSON
+  //   alert("✅ Se envió la actualización a GitHub");
+  // }
+  // async function guardarEnGitHub() {
+  //   const repo = "TaylorBundy/Almacen_Mily"; // tu repo
+  //   const workflow = "actualizar-json.yml"; // nombre del workflow
+  //   const contenido = localStorage.getItem("jsonData"); // tu JSON
 
-    // Llamar al API de GitHub para disparar workflow_dispatch
-    const response = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${workflow}`, {
-      method: "POST",
-      headers: {
-        "Accept": "application/vnd.github.v3+json"
-        // ⚠️ No hay token aquí, seguridad total
-      },
-      body: JSON.stringify({
-        ref: "main", // branch donde está el workflow
-        inputs: {
-          contenido: contenido
-        }
-      })
-    });
+  //   // Llamar al API de GitHub para disparar workflow_dispatch
+  //   const response = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${workflow}`, {
+  //     method: "POST",
+  //     headers: {
+  //       "Accept": "application/vnd.github.v3+json"
+  //       // ⚠️ No hay token aquí, seguridad total
+  //     },
+  //     body: JSON.stringify({
+  //       ref: "main", // branch donde está el workflow
+  //       inputs: {
+  //         contenido: contenido
+  //       }
+  //     })
+  //   });
 
-    if (response.ok) {
-      alert("✅ Workflow disparado correctamente. GitHub actualizará el JSON.");
-    } else {
-      alert("❌ Error al disparar workflow. Ver consola.");
-      console.log(await response.text());
-    }
-  }
+  //   if (response.ok) {
+  //     alert("✅ Workflow disparado correctamente. GitHub actualizará el JSON.");
+  //   } else {
+  //     alert("❌ Error al disparar workflow. Ver consola.");
+  //     console.log(await response.text());
+  //   }
+  // }
 
 
   async function cargarCSV() {
