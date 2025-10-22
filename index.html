@@ -33,7 +33,8 @@
   </div>
   <div class="SearchContainer">
     <img id="btnImage" class="searching" src="icons/search.avif">
-    <input type="text" id="searchInput" placeholder="Buscar por nombre o ID" oninput="buscar()" onmouseover="mostrarTooltip(event, TitulosList.searchInput)" onmouseout="ocultarTooltip(2000)">
+    <!-- <input type="text" id="searchInput" placeholder="Buscar por nombre o ID" oninput="buscar()" onmouseover="mostrarTooltip(event, TitulosList.searchInput)" onmouseout="ocultarTooltip(2000)"> -->
+    <input type="text" id="searchInput" placeholder="Buscar por nombre o ID" onmouseover="mostrarTooltip(event, TitulosList.searchInput)" onmouseout="ocultarTooltip(2000)">
     <button id="btnAbrirModal" onclick="abrirModal()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioAgregar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/add-item.avif">Agregar artículo</button>
     <button id="btnAbrirModalEditar" onclick="abrirModalEditar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEditar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/edit.avif">Editar artículo</button>
     <button id="btnAbrirModalEliminar" onclick="abrirModalEliminar()" onmouseover="mostrarTooltip(event, TitulosList.btnFormularioEliminar)" onmouseout="ocultarTooltip(2000)"><img id="btnImage" src="icons/borrar.avif">Eliminar artículo</button>

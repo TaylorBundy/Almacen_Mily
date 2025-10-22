@@ -460,11 +460,25 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     }
     // Filtrar datos
     const datosConIndice = datos.map((row, idx) => ({ ...row, _index: idx }));
+    let filtrados;
     //const filtrados = datos.filter(row => {
-      const filtrados = datosConIndice.filter(row => {
-        //return Object.values(row).some(v => v.toLowerCase().includes(valor));
-        return Object.values(row).some(v => String(v).toLowerCase().includes(valor));
-    });
+    //const filtrados = datosConIndice.filter(row => {
+      //return Object.values(row).some(v => v.toLowerCase().includes(valor));
+      //return Object.values(row).some(v => String(v).toLowerCase().includes(valor));
+    //});
+
+    if (/^\d+$/.test(valor)) {
+      // Si el input es solo números → buscar por ID
+      filtrados = datosConIndice.filter(row =>
+        String(row.ID).toLowerCase().includes(valor)
+      );
+    } else {
+      // Si el input contiene texto → buscar en todas las columnas
+      filtrados = datosConIndice.filter(row =>
+        Object.values(row).some(v => String(v).toLowerCase().includes(valor))
+      );
+    }
+
     //indiceOriginal = filtrados[0]._index;
     //console.log(indiceOriginal);
     btnAbrirModalEditar.disabled = true;
@@ -473,14 +487,14 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
 });
 
 // 🔍 Búsqueda (insensible y parcial)
-function buscar() {
-  const query = document.getElementById('searchInput').value.toLowerCase();
-  const resultados = datos.filter(d =>
-    d.nombre?.toLowerCase().includes(query) ||
-    d.id?.toLowerCase().includes(query)
-  );
-  mostrarTabla(resultados);
-}
+// function buscar() {
+//   const query = document.getElementById('searchInput').value.toLowerCase();
+//   const resultados = datos.filter(d =>
+//     d.nombre?.toLowerCase().includes(query) ||
+//     d.id?.toLowerCase().includes(query)
+//   );
+//   mostrarTabla(resultados);
+// }
 // 📝 Procesar CSV
 function procesarCSV(texto) {
   const lineas = texto.split(/\r?\n/).filter(l => l.trim() !== '');
@@ -502,7 +516,7 @@ function mostrarTabla(lista) {
   lista.forEach((r, idx) => {
     const indice = r._index ?? idx; // usa el original si existe
     const fila = document.createElement('tr');
-    fila.dataset.index = indice; // ← almacena el índice original
+    fila.dataset.index = indice + 1; // ← almacena el índice original
     fila.innerHTML = `
       <td class="indice">${idx + 1}</td>
       <td class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
@@ -718,6 +732,7 @@ function abrirModalEliminar() {
   segundosRestantes = 10;
   modalEliminar.style.display = "flex";
   contadorCerrar.style.display = "none"; // oculto al abrir
+  buscarEliminar.focus();
   mensaje = `${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!\nIngrese un valor sobre el campo de busqueda, o haga click en cualquier lugar del formulario para Cancelar el cierre.!`;
 
   // Cancelar temporizadores previos si existían
@@ -1339,7 +1354,7 @@ function detenerCSVTemporizador() {
 function comprobarCambiosDatos() {
   try {
     // Detectar si estamos usando JSON o CSV
-    const usandoJSON = window.location.href.startsWith('https://');
+    const usandoJSON = window.location.href.startsWith('https://') || window.location.href.startsWith('http://');
     const storageKey = usandoJSON ? 'jsonData' : 'csvData';
     const guardado = localStorage.getItem(storageKey);
 
@@ -1501,12 +1516,13 @@ function obtenerFechaMasRecienteFormatoCSV(csvTexto, origenFecha) {
     if (origenFecha === 'original') {
       // //console.log(`Fechas Originales: ${valor}`);
       //console.log(precio);
-      FechasViejas.push({valor: valor, precio: precio});
+      FechasViejas.push(valor);
+      //FechasViejas.push({valor: valor, precio: precio});
     } else {
       //console.log(`Fechas Actuales: ${valor}`);
       //console.log(precio);
-      //FechasActuales.push(valor);
-      FechasActuales.push({valor: valor, precio: precio});
+      FechasActuales.push(valor);
+      //FechasActuales.push({valor: valor, precio: precio});
     }
     if (!valor) return null;
 
@@ -1566,13 +1582,10 @@ function compararFechasJSON(jsonOriginal, jsonActual) {
   return diferentes;
 }
 
-function compararFechasUniversal(datosOriginal, datosNuevos) {
+function compararFechasYPreciosCSV(csvOriginal, csvNuevo) {
   const diferentes = [];
 
-  // 🧠 Detectar tipo (CSV o JSON)
-  const esJSON = Array.isArray(datosOriginal) && Array.isArray(datosNuevos);
-
-  // 🔹 Convertir CSV → Array de objetos con fechas
+  // Convertir CSV → Array de objetos
   const parsearCSV = (csv) => {
     const lineas = csv.split(/\r?\n/).filter(l => l.trim() !== '');
     if (lineas.length < 2) return [];
@@ -1580,7 +1593,7 @@ function compararFechasUniversal(datosOriginal, datosNuevos) {
     const headers = lineas[0].split(sep).map(h => h.trim().toUpperCase());
     const idxFecha = headers.indexOf('ACTUALIZADO');
     const idxPrecio = headers.indexOf('PRECIO');
-    if (idxFecha === -1) return [];
+    if (idxFecha === -1 || idxPrecio === -1) return [];
 
     return lineas.slice(1).map((l, i) => {
       const partes = l.split(sep);
@@ -1592,17 +1605,15 @@ function compararFechasUniversal(datosOriginal, datosNuevos) {
     });
   };
 
-  // 🔹 Normalizar ambos conjuntos de datos
-  const orig = esJSON ? datosOriginal : parsearCSV(datosOriginal);
-  const nuev = esJSON ? datosNuevos : parsearCSV(datosNuevos);
-
+  const orig = parsearCSV(csvOriginal);
+  const nuev = parsearCSV(csvNuevo);
   const len = Math.max(orig.length, nuev.length);
 
   for (let i = 0; i < len; i++) {
-    const fOrigStr = esJSON ? orig[i]?.ACTUALIZADO?.trim() : orig[i]?.ACTUALIZADO;
-    const fNuevaStr = esJSON ? nuev[i]?.ACTUALIZADO?.trim() : nuev[i]?.ACTUALIZADO;
-    const fOrigPrice = esJSON ? orig[i]?.PRECIO?.trim() : orig[i]?.PRECIO;
-    const fNuevaPrice = esJSON ? nuev[i]?.PRECIO?.trim() : nuev[i]?.PRECIO;
+    const fOrigStr = orig[i]?.ACTUALIZADO;
+    const fNuevaStr = nuev[i]?.ACTUALIZADO;
+    const fOrigPrice = orig[i]?.PRECIO;
+    const fNuevaPrice = nuev[i]?.PRECIO;
 
     if (!fOrigStr || !fNuevaStr || fOrigStr === '0' || fNuevaStr === '0') continue;
 
@@ -1614,6 +1625,7 @@ function compararFechasUniversal(datosOriginal, datosNuevos) {
 
     if (isNaN(fechaOriginal) || isNaN(fechaActual)) continue;
 
+    // Si cambió la fecha o el precio
     if (fechaActual > fechaOriginal || fNuevaPrice !== fOrigPrice) {
       diferentes.push({
         indice: i,
@@ -1629,47 +1641,118 @@ function compararFechasUniversal(datosOriginal, datosNuevos) {
 }
 
 
+// function compararFechasUniversal(datosOriginal, datosNuevos) {
+//   const diferentes = [];
+
+//   // 🧠 Detectar tipo (CSV o JSON)
+//   const esJSON = Array.isArray(datosOriginal) && Array.isArray(datosNuevos);
+
+//   // 🔹 Convertir CSV → Array de objetos con fechas
+//   const parsearCSV = (csv) => {
+//     const lineas = csv.split(/\r?\n/).filter(l => l.trim() !== '');
+//     if (lineas.length < 2) return [];
+//     const sep = lineas[0].includes(';') ? ';' : ',';
+//     const headers = lineas[0].split(sep).map(h => h.trim().toUpperCase());
+//     const idxFecha = headers.indexOf('ACTUALIZADO');
+//     const idxPrecio = headers.indexOf('PRECIO');
+//     if (idxFecha === -1) return [];
+
+//     return lineas.slice(1).map((l, i) => {
+//       const partes = l.split(sep);
+//       //console.log(partes[idxPrecio]);
+//       return {
+//         indice: i,
+//         ACTUALIZADO: partes[idxFecha]?.trim() || '',
+//         PRECIO: partes[idxPrecio]?.trim() || ''
+//       };
+//     });
+//   };
+
+//   // 🔹 Normalizar ambos conjuntos de datos
+//   const orig = esJSON ? datosOriginal : parsearCSV(datosOriginal);
+//   const nuev = esJSON ? datosNuevos : parsearCSV(datosNuevos);
+//   //console.log(nuev[654].PRECIO);
+//   //console.log(nuev[654].ACTUALIZADO);
+
+//   const len = Math.max(orig.length, nuev.length);
+//   //console.log(len);
+
+//   for (let i = 0; i < len; i++) {
+//     const fOrigStr = esJSON ? orig[i]?.ACTUALIZADO?.trim() : orig[i]?.ACTUALIZADO;
+//     const fNuevaStr = esJSON ? nuev[i]?.ACTUALIZADO?.trim() : nuev[i]?.ACTUALIZADO;
+//     const fOrigPrice = esJSON ? orig[i]?.PRECIO?.trim() : orig[i]?.PRECIO;
+//     const fNuevaPrice = esJSON ? nuev[i]?.PRECIO?.trim() : nuev[i]?.PRECIO;
+
+//     if (!fOrigStr || !fNuevaStr || fOrigStr === '0' || fNuevaStr === '0') continue;
+
+//     const [d1, m1, y1] = fOrigStr.split('/').map(Number);
+//     const [d2, m2, y2] = fNuevaStr.split('/').map(Number);
+
+//     const fechaOriginal = new Date(y1, m1 - 1, d1);
+//     const fechaActual = new Date(y2, m2 - 1, d2);
+//     console.log(`fechaOriginal: ${fechaOriginal} - fechaActual: ${fechaActual}`);
+//     console.log(fechaOriginal);
+//     console.log(fNuevaPrice);
+//     console.log(fOrigPrice);
+
+//     if (isNaN(fechaOriginal) || isNaN(fechaActual)) continue;
+
+//     if (fechaActual > fechaOriginal || fNuevaPrice !== fOrigPrice) {
+//       diferentes.push({
+//         indice: i,
+//         fechaOriginal: fOrigStr,
+//         fechaActual: fNuevaStr,
+//         precioOriginal: fOrigPrice,
+//         precioActual: fNuevaPrice
+//       });
+//     }
+//   }
+
+//   return diferentes;
+// }
+
+
 // Funcion para detectar fechas más nuevas CSV
-function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
-  const diferentes = [];
+// function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
+//   const diferentes = [];
 
-  for (let i = 0; i < fechasNuevas.length; i++) {
-    const nuevo = fechasNuevas[i];
-    const original = fechasOriginal[i];
+//   for (let i = 0; i < fechasNuevas.length; i++) {
+//     const nuevo = fechasNuevas[i];
+//     const original = fechasOriginal[i];
 
-    // Detectar si son objetos (JSON) o strings (CSV)
-    const fNueva = typeof nuevo === 'object' ? nuevo?.ACTUALIZADO : nuevo;
-    const fOrig  = typeof original === 'object' ? original?.ACTUALIZADO : original;
-    const fNuevaPrice = typeof nuevo === 'object' ? nuevo?.PRECIO : nuevo;
-    const fOrigPrice = typeof original === 'object' ? original?.PRECIO : original;
-    //console.log(fNuevaPrice, fOrigPrice);
+//     // Detectar si son objetos (JSON) o strings (CSV)
+//     const fNueva = typeof nuevo === 'object' ? nuevo?.ACTUALIZADO : nuevo;
+//     const fOrig  = typeof original === 'object' ? original?.ACTUALIZADO : original;
+//     const fNuevaPrice = typeof nuevo === 'object' ? nuevo?.PRECIO : nuevo;
+//     const fOrigPrice = typeof original === 'object' ? original?.PRECIO : original;
+//     //console.log(fNuevaPrice, fOrigPrice);
 
-    // Ignorar vacíos o 0
-    //if (!fOrig || !fNueva || fOrig === '0' || fNueva === '0') continue;
-    if (!fOrig || !fNueva) continue;
+//     // Ignorar vacíos o 0
+//     //if (!fOrig || !fNueva || fOrig === '0' || fNueva === '0') continue;
+//     if (!fOrig || !fNueva) continue;
 
-    // Convertir de DD/MM/YYYY a Date
-    const [d1, m1, y1] = fOrig.split('/').map(Number);
-    const [d2, m2, y2] = fNueva.split('/').map(Number);
-    const fechaO = new Date(y1, m1 - 1, d1);
-    const fechaN = new Date(y2, m2 - 1, d2);
+//     // Convertir de DD/MM/YYYY a Date
+//     const [d1, m1, y1] = fOrig.split('/').map(Number);
+//     const [d2, m2, y2] = fNueva.split('/').map(Number);
+//     const fechaO = new Date(y1, m1 - 1, d1);
+//     const fechaN = new Date(y2, m2 - 1, d2);
 
-    if (isNaN(fechaO) || isNaN(fechaN)) continue;
+//     if (isNaN(fechaO) || isNaN(fechaN)) continue;
 
-    // Comparar fechas
-    if (fechaN > fechaO || fNuevaPrice !== fOrigPrice) {
-      diferentes.push({
-        indice: i,                // 👈 índice real
-        original: fOrig,
-        nueva: fNueva,
-        precioOriginal: fOrigPrice,
-        precioNueva: fNuevaPrice
-      });
-    }
-  }
+//     // Comparar fechas
+//     if (fechaN > fechaO || fNuevaPrice !== fOrigPrice) {
+//       diferentes.push({
+//         indice: i,                // 👈 índice real
+//         original: fOrig,
+//         nueva: fNueva,
+//         precioOriginal: fOrigPrice,
+//         precioNueva: fNuevaPrice
+//       });
+//     }
+//   }
 
-  return diferentes;
-}
+//   return diferentes;
+// }
 
 // 🔹 Obtener la fecha más reciente del campo "ACTUALIZADO" en un JSON
 // function obtenerFechaMasRecienteFormatoJSON2(jsonData, origenFecha) {
@@ -1905,58 +1988,48 @@ function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
 // contiene los mismos datos que localStorage con nombre "csvData"
 setTimeout(() => {
   contador = items.textContent.split(': ')[1];
-  let originalesDiferentes;
+  let fechasOriginalesDiferentes;
+  let fechasActualesDiferentes;
+  let preciosOriginalesDiferentes;
+  let preciosActualesDiferentes;
   let preciosDiferentes;
+  let fechasDiferentes;
   if (esLocal()) {
-    //obtenerFechaMasRecienteFormatoCSV(csvData, 'actuales');
-    //obtenerFechaMasRecienteFormatoCSV(csvDataOriginal, 'original');
     const lineas = csvDataOriginal.split(/\r?\n/).filter(l => l.trim() !== '');
     cantidadOriginal = lineas.length - 1;
-    //console.log(csvData);
-    //console.log(csvDataOriginal);
-    //const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
-    const cambios = compararFechasUniversal(csvDataOriginal, csvData);
-    originalesDiferentes = cambios.map(c => c.fechaOriginal);
-    preciosDiferentes = cambios.map(c => c.precioActual);
-    console.log(cambios);
-    console.log(preciosDiferentes.length);
-    //console.log(compararFechasUniversal(csvDataOriginal, csvData));
+    const cambios = compararFechasYPreciosCSV(csvDataOriginal, csvData);
+    fechasOriginalesDiferentes = cambios.map(c => c.fechaOriginal);
+    fechasActualesDiferentes = cambios.map(c => c.fechaActual);
+    preciosOriginalesDiferentes = cambios.map(c => c.precioOriginal);
+    preciosActualesDiferentes = cambios.map(c => c.precioActual);
+    //preciosDiferentes = preciosOriginalesDiferentes.length - preciosActualesDiferentes.length;
+    //console.log(preciosDiferentes);
+    //console.log(cambios);
+    //console.log(fechasOriginalesDiferentes.length);
+    //console.log(fechasActualesDiferentes.length);
+    //console.log(preciosOriginalesDiferentes.length);
+    //console.log(preciosActualesDiferentes.length);
   } else {
     const datosActuales = localStorage.getItem("jsonData");
     const datosOriginales = localStorage.getItem("jsonOriginal");
     cantidadOriginal = JSON.parse(datosOriginales).length;
-    //const lista = JSON.parse(datosOriginales);
-    //obtenerFechaMasRecienteFormatoJSON(JSON.parse(datosActuales), 'actuales');
-    //obtenerFechaMasRecienteFormatoJSON(JSON.parse(datosOriginales), 'original');
-    //const resultadoss = obtenerFechaMasRecienteFormatoJSON(JSON.parse(datosOriginales), 'original');
-    //const resultadoss2 = obtenerFechaMasRecienteFormatoJSON(JSON.parse(datosActuales), 'actuales');
-    //console.log(resultadoss);
-    //console.log(resultadoss2);
-    //console.log(obtenerFechaMasRecienteJSON(datosOriginales));
-    //console.log(datosActuales);
-    //console.log(datosOriginales);
     const cambios = compararFechasJSON(JSON.parse(datosOriginales), JSON.parse(datosActuales));
-    originalesDiferentes = cambios.map(c => c.fechaOriginal);
-    preciosDiferentes = cambios.map(c => c.precioActual);
-    console.log(cambios);
-    console.log(originalesDiferentes.length);
-    console.log(preciosDiferentes.length);
-    //console.log(compararFechasJSON(JSON.parse(datosOriginales), JSON.parse(datosActuales)));
+    fechasOriginalesDiferentes = cambios.map(c => c.fechaOriginal);
+    fechasActualesDiferentes = cambios.map(c => c.fechaActual);
+    preciosOriginalesDiferentes = cambios.map(c => c.precioOriginal);
+    preciosActualesDiferentes = cambios.map(c => c.precioActual);
+    //console.log(cambios);
+    //console.log(fechasOriginalesDiferentes.length);
+    //console.log(fechasActualesDiferentes.length);
+    //console.log(preciosOriginalesDiferentes.length);
+    //console.log(preciosActualesDiferentes.length);
   }
-  //const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
-  //console.log(cambios);
-  // console.log(datos.length);
-  console.log(cantidadActual);
-  console.log(cantidadOriginal);
-  // console.log(contador);
-  //console.log(`FechasViejas: ${FechasViejas}`);
-  //console.log(`FechasActuales: ${FechasActuales}`);
-  //const originalesDiferentes = cambios.map(c => c.original);
-  //console.log(originalesDiferentes);
-  if (preciosDiferentes.length > 0) {
+  preciosDiferentes = preciosActualesDiferentes.length;
+  fechasDiferentes = fechasActualesDiferentes.length;
+  if (preciosActualesDiferentes.length > 0 || fechasActualesDiferentes.length > 0 || cantidadActual > cantidadOriginal) {
   //const originalesDiferentes = cambios.map(c => c.original);
   //const actualesDiferentes = cambios.map(c => c.nueva);
-    if (originalesDiferentes.length > 0 || cantidadActual !== cantidadOriginal) {
+    //if (originalesDiferentes.length > 0 || cantidadActual !== cantidadOriginal) {
       if (esLocal()) {
         mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en: ${archivoOriginal} procedente del archivo original: ${Icons.csv}${nombre}<br>Son más antiguos que los datos de: ${csvDatos} almacenados en LocalStorage`, 'datosOriginales');
         localStorage.setItem(archivoOriginal, csvData);
@@ -1965,9 +2038,9 @@ setTimeout(() => {
         mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en LocalStorage procedentes del archivo Original "Lista_Precios.json"<br>Son más antiguos que los datos almacenados en LocalStorage obtenidos de la tabla de artículos`, 'datosOriginales');
         localStorage.setItem('jsonOriginal', datosActuales);
       }
-    } else {
+    //} else {
       //console.log('son iguales');
-    }
+    //}
   }
 }, 5000);
 // 🔹 Función para asignar un tooltip único a un elemento
