@@ -157,7 +157,7 @@ td[contenteditable="true"], .codigoN {
     width: 50%;
     box-shadow: 0 0 15px #000;
 }
-#buscarEliminar {
+#buscarEliminar, #buscarEditar {
     width: 100%;
 }
 .contadorCoincidencias {
@@ -166,7 +166,7 @@ td[contenteditable="true"], .codigoN {
     margin-top: 4px;
     margin-bottom: 8px;
 }
-.resultadoEliminar {
+.resultadoEliminar, .resultadoEditar {
     background: #333;
     padding: 10px;
     margin-top: 10px;
@@ -183,7 +183,7 @@ td[contenteditable="true"], .codigoN {
 .buscarContainer p {
     margin: 0;
 }
-#buscarAnterior, #btnAnterior, #btnSiguiente, #buscarSiguiente {
+#buscarAnterior, #btnAnterior, #btnAnteriorEditar, #btnSiguiente, #btnSiguienteEditar, #buscarSiguiente {
     padding: 0 10px;
 }
 #modalCargar {
@@ -230,24 +230,48 @@ td[contenteditable="true"], .codigoN {
     display: none;
 }
 #modalEditar {
-    position: fixed;
+    /* position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: rgba(0, 0, 0, 0.6);
-    z-index: 999;
+    z-index: 999; */
+    position: fixed;
+    /* top: 0; left: 0;
+    width: 100%; height: 100%; */
+    top:0;
+    bottom: 0;
+    left:0;
+    right: 0;
+    margin: auto;
+    width:70%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
   }
   
   #containerEditar {
-    background-color: #222;
+    /* background-color: #222;
     color: white;
     padding: 20px 30px;
     border-radius: 12px;
-    width: 380px;
+    /* width: 380px; */
+    /*width: 50%;
     box-shadow: 0 0 25px rgba(0,0,0,0.5);
-    position: relative;
+    position: relative; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #222;
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 50%;
+    box-shadow: 0 0 15px #000;
   }
   
   #containerEditar h3 {
@@ -283,23 +307,30 @@ td[contenteditable="true"], .codigoN {
     margin-top: 5px;
   }
   
-  .resultadoEditar {
+  /* .resultadoEditar {
     background-color: #333;
     padding: 10px;
     margin-top: 10px;
     border-radius: 6px;
-  }
+  } */
   
   .resultadoEditar .campo {
     margin-bottom: 6px;
   }
+
+.campoPrecio {
+    display: flex;
+    flex-direction: column;
+}
   
   .resultadoEditar input {
-    width: 100%;
+    /* width: 100%; */
+    width: auto;
     padding: 5px;
     border-radius: 5px;
     border: none;
-    margin-top: 3px;
+    /* margin-top: 3px; */
+    margin: 3px 0;
   }
   
   .btnContainer {
@@ -327,3 +358,18 @@ td[contenteditable="true"], .codigoN {
     background-color: #f0ad4e;
     color: white;
   } */
+
+#btnAbrirModal, #btnAbrirModalEliminar, #btnAbrirModalEditar, #btnGuardar {
+    box-shadow: inset 0 0 10px #000;
+    border: none;
+    border-radius: 5px;
+    width: 160px;
+    padding: 8px 10px;
+    justify-content: center;
+}
+
+#btnAbrirModal:hover, #btnAbrirModalEliminar:hover, #btnAbrirModalEditar:hover, #btnGuardar:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 15px #000;
+    font-weight: bold;
+}

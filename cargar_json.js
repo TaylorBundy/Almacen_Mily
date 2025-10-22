@@ -12,7 +12,7 @@ async function cargarJSON() {
         PRODUCTO: item.PRODUCTO || item.producto || '',
         PRECIO: item.PRECIO || item.precio || '',
         PRECIO2: item.PRECIO2 || item.precio2 || '',
-        ACTUALIZADO: item.ACTUALIZADO || item.actualizado || ''
+        ACTUALIZADO: item.ACTUALIZADO || item.actualizado || '0'
         }));
 
         // Llamamos a mostrarTabla con los datos adaptados

@@ -52,6 +52,9 @@ let origen = null;
 let estadoTooltip = false;
 let mensaje = null;
 let desdeDonde = null;
+let numeroContador;
+let numeroEncontrado;
+let timeoutCerrarModal = null;
 const modal = document.getElementById('modal');
 const modalCargar = document.getElementById("modalCargar");
 const modalEditar = document.getElementById("modalEditar");
@@ -63,6 +66,10 @@ const btnEliminar = document.getElementById("btnEliminar");
 const btnGuardarEditar = document.getElementById("btnGuardarEditar");
 const btnSiguiente = document.getElementById("btnSiguiente");
 const btnAnterior = document.getElementById("btnAnterior");
+const btnSiguienteEditar = document.getElementById("btnSiguienteEditar");
+const btnAnteriorEditar = document.getElementById("btnAnteriorEditar");
+//const numCoin = document.querySelector('#contadorEditarTotal');
+let numCoin2;
 let id = document.getElementById("codigoEncontrado");
 let id2 = document.getElementById("codigoEncontradoP");
 //const
@@ -100,7 +107,9 @@ const Icons = {
   limpiar: "♻️",
   guardar: "💾",
   anterior: "⏮️",
+  anterior2: "◀",
   siguiente: "⏭️",
+  siguiente2: "▶",
   buscar: "🔎",
   cancelar: "⛔",
   eliminar: "✖️",
@@ -325,14 +334,14 @@ function esPrecioValido(valor) {
 window.onload = function() {
   contador = items.textContent.split(': ')[1];
   if (contador == '0') {
-    inputSearch.disabled = true;
-    inputSearch.style.cursor = 'not-allowed';
-    btnAbrirModal.disabled = true;
-    btnAbrirModal.style.cursor = 'not-allowed';
-    btnAbrirModalEliminar.disabled = true;
-    btnAbrirModalEliminar.style.cursor = 'not-allowed';
-    btnGuardar.disabled = true;
-    btnGuardar.style.cursor = 'not-allowed';
+    //inputSearch.disabled = true;
+    //inputSearch.style.cursor = 'not-allowed';
+    inputSearch.disabled = btnAbrirModal.disabled = btnAbrirModalEliminar.disabled = btnAbrirModalEditar.disabled = btnGuardar.disabled = true;
+    inputSearch.style.cursor = btnAbrirModal.style.cursor = btnAbrirModalEditar.style.cursor = btnAbrirModalEliminar.style.cursor = btnGuardar.style.cursor = 'not-allowed';
+    //btnAbrirModalEliminar.disabled = true;
+    //btnAbrirModalEliminar.style.cursor = 'not-allowed';
+    //btnGuardar.disabled = true;
+    //btnGuardar.style.cursor = 'not-allowed';
   }
   
   porcentaje = document.getElementById('porcentajeInput')?.value || 20;
@@ -347,11 +356,21 @@ window.onload = function() {
   }
 };
 //Definimos la funcion que agrega los titulos a los componentes
-function Titulos(id) {
+function Titulos(id, indirec = null) {
     segundosTooltip = 1500;
     const item = document.getElementById(`${id}`);
+    //console.log(indirec);
+    // item.addEventListener('mouseover', (e) => {
+    //   const fila3 = e.target.closest("tr"); // la fila sobre la que estás
+    //   if (!fila3) return;
+
+    //   const indexOriginal3 = parseInt(fila3.dataset.index, 10);
+    //   indiceOriginal = indexOriginal3 + 1;
+    //   console.log("Índice original:", indexOriginal3 + 1);
+    //  });
+
     if (item.className.includes('precio1')) {
-      titulo = `Producto: ${item.previousElementSibling.textContent}\nPrecio Venta: ${item.textContent}\nIndice: ${item.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.textContent}`;
+      titulo = `Producto: ${item.previousElementSibling.textContent}\nPrecio Venta: ${item.textContent}\nIndice: ${indirec + 1}`;//${item.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.textContent};
     } else if (item.className.includes('precio2')) {
       titulo = `Producto: ${item.previousElementSibling.previousElementSibling.textContent}\nPrecio Deudores: ${item.textContent}`;
     } else if (item.className.includes('producto')) {
@@ -361,21 +380,24 @@ function Titulos(id) {
     }
     //asignarTooltipUnico2(item, () => `${titulo}`, segundosTooltip);
      item.addEventListener('mouseover', (e) => {
-      const fila3 = e.target.closest("tr"); // la fila sobre la que estás
-      if (!fila3) return;
+      //const fila3 = e.target.closest("tr"); // la fila sobre la que estás
+      //if (!fila3) return;
 
-      const indexOriginal3 = parseInt(fila3.dataset.index, 10);
+      //const indexOriginal3 = parseInt(fila3.dataset.index, 10);
       //console.log("Índice original:", indexOriginal3);
-       item.title = titulo;
+      item.title = titulo;
+      item.style.cursor = 'help';
      });
     //if (item.onmouseover) {
     //item.title = titulo;
     // item.addEventListener('mouseover', (e) => {
     //   mostrarTooltip(e, titulo);
     // });
-    // item.addEventListener('mouseout', () => {
-    //   ocultarTooltip(3000);
-    // });
+    item.addEventListener('mouseout', () => {
+      setTimeout(() => {
+        indiceOriginal = null;
+      }, 500);
+    });
     //}
 }
 // 📂 Cargar CSV
@@ -486,27 +508,27 @@ function mostrarTabla(lista) {
       <td class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
       <td class="id">${r.ID || ''}</td>
       <td class="producto" id="producto${idx + 1}" onmouseover="Titulos(this.id)">${r.PRODUCTO || ''}</td>
-      <td class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id)">${r.PRECIO || ''}</td>
+      <td class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${r.PRECIO || ''}</td>
 
       <td class="precio2N" id="precio2-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
       <td class="fecha">${r.ACTUALIZADO || ''}</td>
     `;
     tbody.appendChild(fila);
-    //indicesOriginales = {indices: indice, ids: r.ID};
+    indicesOriginales = {indices: indice, ids: r.PRODUCTO};
     //console.log(`indice: ${indicesOriginales.indices} - id: ${indicesOriginales.ids}`);
   });
 
   document.getElementById('contador').innerText = `Artículos cargados: ${lista.length}`;
   contador = items.textContent.split(': ')[1];
   if (contador !== '0') {
-    inputSearch.disabled = false;
+    //inputSearch.disabled = false;
     inputSearch.style.cursor = 'text';
-    btnAbrirModal.disabled = false;
-    btnAbrirModal.style.cursor = 'pointer';
-    btnAbrirModalEliminar.disabled = false;
-    btnAbrirModalEliminar.style.cursor = 'pointer';
-    btnGuardar.disabled = false;
-    btnGuardar.style.cursor = 'pointer';
+    inputSearch.disabled = btnAbrirModal.disabled = btnAbrirModalEliminar.disabled = btnAbrirModalEditar.disabled = btnGuardar.disabled = false;
+    btnAbrirModal.style.cursor = btnAbrirModalEliminar.style.cursor = btnAbrirModalEditar.style.cursor = btnGuardar.style.cursor = 'pointer';
+    //btnAbrirModalEliminar.disabled = false;
+    //btnAbrirModalEliminar.style.cursor = 'pointer';
+    //btnGuardar.disabled = false;
+    //btnGuardar.style.cursor = 'pointer';
   }
   //indicesOriginales.forEach( ind => {
     //console.log(`indice: ${indicesOriginales.indices} - id: ${indicesOriginales.ids}`);
@@ -591,6 +613,15 @@ function inicializarCeldasCodigo() {
       });
   });
 }
+// Mover cursor al final en elemento contenteditable
+function moverCursorAlFinal(elemento) {
+  const rango = document.createRange();
+  const seleccion = window.getSelection();
+  rango.selectNodeContents(elemento);
+  rango.collapse(false); // false → al final
+  seleccion.removeAllRanges();
+  seleccion.addRange(rango);
+}
 // 💾 Guardar CSV actualizado (sin confirmación, solo muestra si fue OK)
 function guardarCSV() {
   origen = "modalGuardar";
@@ -662,30 +693,18 @@ function cerrarModal() {
   modal.style.display = 'none';
   limpiarInputs('#modal'); // Limpia todos los inputs dentro del formulario con id="miFormulario"
 }
-// 🔒 Cerrar modal agregar articulo con tecla ESC
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    if (modal && modal.style.display === 'flex') {
-      cerrarModal(); // 👈 usa tu función existente
-    }
-    if (modalEliminar && modalEliminar.style.display === 'flex') {
-      cerrarModalEliminar(); // 👈 usa tu función existente
-    }
-    if (modalEditar && modalEditar.style.display === 'flex') {
-      cerrarModalEditar(); // 👈 usa tu función existente
-    }
-  }
-});
+// Funcion abrir modal editar articulo
 function abrirModalEditar() {
   ocultarTooltip(0);
   document.getElementById("modalEditar").style.display = "flex";
+  buscarEditar.focus();
   if (buscarEditar.value === '') {
     precio1Editar.disabled = true;
     precio2Editar.disabled = true;
   }
   actualizarVistaCoincidencia(modalEditar);
 }
-
+// ❌ Cerrar modal editar articulo
 function cerrarModalEditar() {
   document.getElementById("modalEditar").style.display = "none";
   coincidencias = [];
@@ -693,51 +712,15 @@ function cerrarModalEditar() {
   indiceActual = 0;
   limpiarInputs('#modalEditar');
 }
-
 // 🚪 Abrir/Cerrar modal eliminar articulo
-// function abrirModalEliminar2() {
-//   origen = "modalEliminar";
-//   //document.getElementById("modalEliminar")
-//   modalEliminar.style.display = "flex";
-//   usuarioActivoEnModal = false;
-//   clearTimeout(timeoutCerrarModal);
-//   //document.getElementById("buscarEliminar")
-//   buscarEliminar.value = "";
-//   //document.getElementById("buscarEliminar")
-//   buscarEliminar.focus();
-//   coincidencias = [];
-//   indiceActual = 0;
-//   actualizarVistaCoincidencia();
-//   setTimeout(() => {
-//     //if (!nuevoNombre.value || !precio1.value) {
-//     if (modalEliminar.style.display === 'flex') {
-//       // if (buscarEliminar.oninput()) {
-//       //   console.log('cambioooo');
-//       // }
-//       // console.log(buscarEliminar.value);
-//       if (!buscarEliminar.value === '') {
-//         // console.log('no esta vacio');
-//         return;
-//       } else {
-//         cerrarModalEliminar();
-//         mostrarMensajeOK(`${Icons.informacion} El formulario: "${modalEliminar.ariaLabel}"<br>Se cerró automáticamente tras 10 segundos por inactividad.`, origen);
-//       }
-//     }
-//   }, 10000);
-// }
-let timeoutCerrarModal = null;
-
 function abrirModalEliminar() {
   origen = "modalEliminar";
   segundosRestantes = 10;
   modalEliminar.style.display = "flex";
   contadorCerrar.style.display = "none"; // oculto al abrir
   mensaje = `${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!\nIngrese un valor sobre el campo de busqueda, o haga click en cualquier lugar del formulario para Cancelar el cierre.!`;
-  //contadorCerrar.textContent = `${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!`;
-
 
   // Cancelar temporizadores previos si existían
-  //clearTimeout(timeoutMostrarContador);
   clearInterval(intervalContador);
 
   // Reiniciamos bandera y timeout cada vez que abrimos
@@ -750,7 +733,6 @@ function abrirModalEliminar() {
     modalEliminar.addEventListener(evento, mantenerModalActivo);
   });
   buscarEliminar.addEventListener('input', cancelarContador);
-  //modalEliminar.querySelectorAll('div').addEventListener('click', cancelarContador);
   modalEliminar.querySelectorAll('div').forEach(div => {
     div.addEventListener('click', cancelarContador);
   });
@@ -773,24 +755,16 @@ function abrirModalEliminar() {
             mostrarMensajeOK(`${Icons.informacion} El formulario: "${modalEliminar.ariaLabel}"<br>Se cerró automáticamente tras 10 segundos por inactividad.`, origen);
           }
         }, 1000)
-        //cerrarModalEliminar();
-        //mostrarMensajeOK(`${Icons.informacion} El formulario: "${modalEliminar.ariaLabel}"<br>Se cerró automáticamente tras 10 segundos por inactividad.`, origen);
-        // mostrarMensajeOK(
-        //   `${Icons.informacion} No se ingresaron datos.<br>⚙️Nombre Producto o ${Icons.money2} Precio Venta vacíos.<br>El formulario: "${modalEliminar.ariaLabel}" se cerró automáticamente tras 15 segundos.`,
-        //   origen
-        // );
       }
     }
   }, 10000);
   actualizarVistaCoincidencia(modalEliminar);
 }
-
 // 👤 Si el usuario interactúa, marcamos como activo y cancelamos el cierre
 function mantenerModalActivo() {
   usuarioActivoEnModal = true;
   clearTimeout(timeoutCerrarModal);
 }
-
 // ❌ Cerrar modal eliminar articulo
 function cerrarModalEliminar() {
   //document.getElementById("modalEliminar")
@@ -811,6 +785,20 @@ function cancelarContador() {
   clearTimeout(timeoutCerrarModal);
   clearInterval(intervalContador);
 }
+// 🔒 Cerrar modal agregar articulo con tecla ESC
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (modal && modal.style.display === 'flex') {
+      cerrarModal(); // 👈 usa tu función existente
+    }
+    if (modalEliminar && modalEliminar.style.display === 'flex') {
+      cerrarModalEliminar(); // 👈 usa tu función existente
+    }
+    if (modalEditar && modalEditar.style.display === 'flex') {
+      cerrarModalEditar(); // 👈 usa tu función existente
+    }
+  }
+});
 // 💲 Formatear campo de precio al perder foco
 function formatearCampo(elem) {
   // Si está vacío o no empieza con "$", lo formateamos
@@ -978,14 +966,196 @@ function agregarArticulo() {
     iniciarCSVTemporizador(segundos);
   }
 }
-// Mover cursor al final en elemento contenteditable
-function moverCursorAlFinal(elemento) {
-  const rango = document.createRange();
-  const seleccion = window.getSelection();
-  rango.selectNodeContents(elemento);
-  rango.collapse(false); // false → al final
-  seleccion.removeAllRanges();
-  seleccion.addRange(rango);
+// 🔍 Buscar artículo para editar
+function buscarArticuloEditar() {
+  const busqueda = document.getElementById("buscarEditar").value.toLowerCase().trim();
+
+  coincidencias = datos.filter(obj =>
+    obj.ID?.toString().includes(busqueda) ||
+    obj.PRODUCTO?.toLowerCase().includes(busqueda)
+  );
+  //indiceActual = 0;
+  //console.log(coincidencias);
+  if (precio1Editar.disabled) {
+    precio1Editar.disabled = false;
+  }
+  if (precio2Editar.disabled) {
+    precio2Editar.disabled = false;
+  }
+  actualizarVistaCoincidencia(modalEditar);
+}
+// 🔍 Buscar artículo para eliminar
+function buscarArticuloEliminar() {
+  const busqueda = document.getElementById("buscarEliminar").value.toLowerCase().trim();
+
+  coincidencias = datos.filter(obj =>
+    obj.ID?.toString().includes(busqueda) ||
+    obj.PRODUCTO?.toLowerCase().includes(busqueda)
+  );
+  indiceActual = 0;
+  actualizarVistaCoincidencia(modalEliminar);
+}
+// ⏭️ Mostrar siguiente coincidencia eliminar
+function mostrarSiguienteCoincidencia() {
+  if (coincidencias.length === 0) return;
+  indiceActual = (indiceActual + 1) % coincidencias.length; // Avanza circularmente
+  nuevoIndice = indiceActual + 1;
+  if (nuevoIndice === coincidencias.length) {
+    btnSiguiente.disabled = true;
+    btnSiguiente.style.cursor = 'not-allowed';
+  }
+  actualizarVistaCoincidencia(modalEliminar);
+}
+// ⏭️ Mostrar siguiente coincidencia editar
+function mostrarSiguienteCoincidencia2() {
+  if (coincidencias.length === 0) return;
+  indiceActual = (indiceActual + 1) % coincidencias.length; // Avanza circularmente
+  nuevoIndice = indiceActual + 1;
+  if (nuevoIndice === coincidencias.length) {
+    btnSiguienteEditar.disabled = true;
+    btnSiguienteEditar.style.cursor = 'not-allowed';
+  }
+  actualizarVistaCoincidencia(modalEditar);
+}
+// ⏭️ Mostrar anterior coincidencia eliminar
+function mostrarAnteriorCoincidencia() {
+  if (coincidencias.length === 0) return;
+  indiceActual = (indiceActual - 1) % coincidencias.length; // Avanza circularmente
+  nuevoIndice = nuevoIndice - 1;
+  if (nuevoIndice >= 1) {
+    btnAnterior.disabled = true;
+    btnAnterior.style.cursor = 'not-allowed';
+  }
+  actualizarVistaCoincidencia(modalEliminar);
+}
+// ⏭️ Mostrar anterior coincidencia editar
+function mostrarAnteriorCoincidencia2() {
+  if (coincidencias.length === 0) return;
+  indiceActual = (indiceActual - 1) % coincidencias.length; // Avanza circularmente
+  nuevoIndice = nuevoIndice - 1;
+  if (nuevoIndice >= 1) {
+    btnAnteriorEditar.disabled = true;
+    btnAnteriorEditar.style.cursor = 'not-allowed';
+  }
+  actualizarVistaCoincidencia(modalEditar);
+}
+// 🧾 Actualiza la vista del resultado actual
+function actualizarVistaCoincidencia(modalActivo) {
+  segundosTooltip = 2000;
+
+  // Determinar si el modal está visible
+  if (modalActivo.style.display === 'flex') {
+    const esEliminar = modalActivo.id === 'modalEliminar';
+    const esEditar = modalActivo.id === 'modalEditar';
+
+    // Asignar referencias a elementos según el modal
+    const contador = modalActivo.querySelector('.contadorCoincidencias');
+    const idEl = modalActivo.querySelector('#codigoEncontrado');
+    const nombreEl = modalActivo.querySelector('#nombreEncontrado');
+    const precio1El = modalActivo.querySelector('#precioEncontrado');
+    const precio2El = modalActivo.querySelector('#precioEncontrado2');
+
+    // Actualizar contador
+    if (contador) {
+      contador.textContent = `${coincidencias.length} ${coincidencias.length === 1 ? 'coincidencia' : 'coincidencias'}`;
+      numeroContador = contador.textContent.split(' ')[0];
+    }
+
+    if (coincidencias.length > 0) {
+      articuloSeleccionado = coincidencias[indiceActual];
+
+      idEl.textContent = articuloSeleccionado?.ID || "-";
+      nombreEl.textContent = articuloSeleccionado?.PRODUCTO || "-";
+      precio1El.textContent = articuloSeleccionado?.PRECIO || "-";
+      precio2El.textContent = articuloSeleccionado?.PRECIO2 || "-";
+
+      // Si es modal de eliminar → los precios son texto
+      // Si es modal de editar → los precios son inputs editables
+      if (esEliminar) {
+        precio1El.textContent = articuloSeleccionado?.PRECIO || "-";
+        precio2El.textContent = articuloSeleccionado?.PRECIO2 || "-";
+        numCoin2 = document.querySelector('#contadorTotal');
+        numCoin2.textContent = `${indiceActual + 1} de ${coincidencias.length}`;
+        numeroEncontrado = numCoin2.textContent.split(' ')[0];
+      } else if (esEditar) {
+        precio1El.value = articuloSeleccionado?.PRECIO?.replace(/[^\d.,]/g, '') || "";
+        precio2El.value = articuloSeleccionado?.PRECIO2?.replace(/[^\d.,]/g, '') || "";
+        numCoin2 = document.querySelector('#contadorEditarTotal');
+        numCoin2.textContent = `${indiceActual + 1} de ${coincidencias.length}`;
+        numeroEncontrado = numCoin2.textContent.split(' ')[0];
+      }
+
+      // Activar tooltips
+      asignarTooltipUnico2(idEl, () => `ID: ${idEl.textContent}`, segundosTooltip);
+      asignarTooltipUnico2(nombreEl, () => `Producto: ${nombreEl.textContent}`, segundosTooltip);
+      asignarTooltipUnico2(precio1El, () => `Precio Venta: ${precio1El.textContent}`, segundosTooltip);
+      asignarTooltipUnico2(precio2El, () => `Precio Deudor: ${precio2El.textContent}`, segundosTooltip);
+
+      if (esEliminar) {
+        btnEliminar.disabled = false;
+        btnEliminar.style.cursor = 'pointer';
+        if (numeroEncontrado === numeroContador) {
+          btnSiguiente.disabled = true;
+          btnSiguiente.style.cursor = 'not-allowed';
+          btnAnterior.disabled = false;
+          btnAnterior.style.cursor = 'pointer';
+        } else if (numeroEncontrado < numeroContador) {
+          btnSiguiente.disabled = false;
+          btnSiguiente.style.cursor = 'pointer';
+        }
+
+      } else if (esEditar) {
+        btnGuardarEditar.disabled = false;
+        btnGuardarEditar.style.cursor = 'pointer';
+        if (numeroEncontrado === numeroContador) {
+          btnSiguienteEditar.disabled = true;
+          btnSiguienteEditar.style.cursor = 'not-allowed';
+          btnAnteriorEditar.disabled = false;
+          btnAnteriorEditar.style.cursor = 'pointer';
+        } else if (numeroEncontrado < numeroContador) {
+          btnSiguienteEditar.disabled = false;
+          btnSiguienteEditar.style.cursor = 'pointer';
+        }
+      }
+    } else {
+      articuloSeleccionado = null;
+      idEl.textContent = nombreEl.textContent = precio1El.textContent = precio2El.textContent = "-";
+      if (esEliminar) {
+        btnEliminar.disabled = btnSiguiente.disabled = btnAnterior.disabled = true;
+        btnEliminar.style.cursor = btnSiguiente.style.cursor = btnAnterior.style.cursor = 'not-allowed';
+        numCoin2 = document.querySelector('#contadorTotal');
+      } else if (esEditar) {
+        btnGuardarEditar.disabled = btnSiguienteEditar.disabled = btnAnteriorEditar.disabled = true;
+        btnGuardarEditar.style.cursor = btnSiguienteEditar.style.cursor = btnAnteriorEditar.style.cursor = 'not-allowed';
+        numCoin2 = document.querySelector('#contadorEditarTotal');
+      }
+      numCoin2.textContent = "0 de 0";
+      asignarTooltipsModalEliminar();
+    }
+  }
+}
+// 🗑️ Eliminar artículo actual
+function eliminarArticuloSeleccionado() {
+  if (!articuloSeleccionado) return;
+  origen = "modalEliminar";
+
+  if (confirm(`¿Seguro que querés eliminar "${articuloSeleccionado.PRODUCTO}"?`)) {
+    datos = datos.filter(obj => obj !== articuloSeleccionado);
+    mostrarMensajeOK(`${Icons.eliminar} Artículo: ${articuloSeleccionado.PRODUCTO} eliminado correctamente.!`, origen);
+    mostrarTabla(datos);
+
+    // Quitar del array de coincidencias y actualizar
+    coincidencias.splice(indiceActual, 1);
+    if (indiceActual >= coincidencias.length) indiceActual = 0;
+    actualizarVistaCoincidencia(modalEliminar);
+    //mostrarMensajeOK(`✖️ Artículo: ${articuloSeleccionado.PRODUCTO} eliminado correctamente.!`, "modalEliminar");
+    cerrarModalEliminar();
+    if (!estadoTemporizador) {
+      estadoTemporizador = true;
+      segundos = 3500;
+      iniciarCSVTemporizador(segundos);
+    }
+  }
 }
 // 🍪 Guardar en "cookie" (localStorage)
 function SetCookie(data, valor, dias) {
@@ -1029,69 +1199,7 @@ function comprobarCSV() {
   // Retornar true si hay datos válidos
   return true;
 }
-// 🔍 Buscar artículo para eliminar
-function buscarArticuloEditar() {
-  const busqueda = document.getElementById("buscarEditar").value.toLowerCase().trim();
 
-  coincidencias = datos.filter(obj =>
-    obj.ID?.toString().includes(busqueda) ||
-    obj.PRODUCTO?.toLowerCase().includes(busqueda)
-  );
-  indiceActual = 0;
-  //console.log(coincidencias);
-  if (precio1Editar.disabled) {
-    precio1Editar.disabled = false;
-  }
-  if (precio2Editar.disabled) {
-    precio2Editar.disabled = false;
-  }
-  actualizarVistaCoincidencia(modalEditar);
-}
-// 🔍 Buscar artículo para eliminar
-function buscarArticuloEliminar() {
-  const busqueda = document.getElementById("buscarEliminar").value.toLowerCase().trim();
-
-  coincidencias = datos.filter(obj =>
-    obj.ID?.toString().includes(busqueda) ||
-    obj.PRODUCTO?.toLowerCase().includes(busqueda)
-  );
-  indiceActual = 0;
-  actualizarVistaCoincidencia(modalEliminar);
-}
-// ⏭️ Mostrar siguiente coincidencia
-function mostrarSiguienteCoincidencia() {
-  if (coincidencias.length === 0) return;
-  indiceActual = (indiceActual + 1) % coincidencias.length; // Avanza circularmente
-  nuevoIndice = indiceActual + 1;
-  if (nuevoIndice === coincidencias.length) {
-    btnSiguiente.disabled = true;
-    btnSiguiente.style.cursor = 'not-allowed';
-  }
-  actualizarVistaCoincidencia(modalEliminar);
-}
-// ⏭️ Mostrar siguiente coincidencia
-function mostrarSiguienteCoincidencia2() {
-  if (coincidencias.length === 0) return;
-  indiceActual = (indiceActual + 1) % coincidencias.length; // Avanza circularmente
-  nuevoIndice = indiceActual + 1;
-  if (nuevoIndice === coincidencias.length) {
-    btnSiguiente.disabled = true;
-    btnSiguiente.style.cursor = 'not-allowed';
-  }
-  actualizarVistaCoincidencia(modalEditar);
-}
-// ⏭️ Mostrar siguiente coincidencia
-function mostrarAnteriorCoincidencia() {
-  if (coincidencias.length === 0) return;
-  indiceActual = (indiceActual - 1) % coincidencias.length; // Avanza circularmente
-  nuevoIndice = nuevoIndice - 1;
-  if (nuevoIndice >= 1) {
-    btnAnterior.disabled = true;
-    btnAnterior.style.cursor = 'not-allowed';
-  }
-  actualizarVistaCoincidencia(modalEliminar);
-}
-// 🧾 Actualiza la vista del resultado actual
 // function actualizarVistaCoincidencia2() {
 //   segundosTooltip = 2000;
 //   if (modalEliminar.style.display === 'flex') {
@@ -1159,119 +1267,6 @@ function mostrarAnteriorCoincidencia() {
 //   }
 // }
 
-function actualizarVistaCoincidencia(modalActivo) {
-  segundosTooltip = 2000;
-
-  // Determinar si el modal está visible
-  if (modalActivo.style.display === 'flex') {
-    const esEliminar = modalActivo.id === 'modalEliminar';
-    const esEditar = modalActivo.id === 'modalEditar';
-
-    // Asignar referencias a elementos según el modal
-    const contador = modalActivo.querySelector('.contadorCoincidencias');
-    const idEl = modalActivo.querySelector('#codigoEncontrado');
-    const nombreEl = modalActivo.querySelector('#nombreEncontrado');
-    const precio1El = modalActivo.querySelector('#precioEncontrado');
-    const precio2El = modalActivo.querySelector('#precioEncontrado2');
-
-    // Botones
-    //const btnPrincipal = modalActivo.querySelector('.btn-principal'); // eliminar o guardar
-    //const btnAnterior = modalActivo.querySelector('.btn-anterior');
-    //const btnSiguiente = modalActivo.querySelector('.btn-siguiente');
-    let btnPrincipal;
-
-    // Actualizar contador
-    if (contador) {
-      contador.textContent = `${coincidencias.length} ${coincidencias.length === 1 ? 'coincidencia' : 'coincidencias'}`;
-    }
-
-    if (coincidencias.length > 0) {
-      articuloSeleccionado = coincidencias[indiceActual];
-
-      idEl.textContent = articuloSeleccionado?.ID || "-";
-      nombreEl.textContent = articuloSeleccionado?.PRODUCTO || "-";
-      precio1El.textContent = articuloSeleccionado?.PRECIO || "-";
-      precio2El.textContent = articuloSeleccionado?.PRECIO2 || "-";
-
-      // Si es modal de eliminar → los precios son texto
-      // Si es modal de editar → los precios son inputs editables
-      if (esEliminar) {
-        btnPrincipal = modalActivo.querySelector('.btnEliminar'); // eliminar o guardar
-        precio1El.textContent = articuloSeleccionado?.PRECIO || "-";
-        precio2El.textContent = articuloSeleccionado?.PRECIO2 || "-";
-      } else if (esEditar) {
-        btnPrincipal = modalActivo.querySelector('.btnGuardarEditar'); // eliminar o guardar
-        precio1El.value = articuloSeleccionado?.PRECIO?.replace(/[^\d.,]/g, '') || "";
-        precio2El.value = articuloSeleccionado?.PRECIO2?.replace(/[^\d.,]/g, '') || "";
-      }
-
-      // Activar tooltips
-      asignarTooltipUnico2(idEl, () => `ID: ${idEl.textContent}`, segundosTooltip);
-      asignarTooltipUnico2(nombreEl, () => `Producto: ${nombreEl.textContent}`, segundosTooltip);
-      asignarTooltipUnico2(precio1El, () => `Precio Venta: ${precio1El.textContent}`, segundosTooltip);
-      asignarTooltipUnico2(precio2El, () => `Precio Deudor: ${precio2El.textContent}`, segundosTooltip);
-
-      if (esEliminar) {
-        //asignarTooltipUnico2(precio1El, () => `Precio Venta: ${precio1El.textContent}`, segundosTooltip);
-        //asignarTooltipUnico2(precio2El, () => `Precio Deudor: ${precio2El.textContent}`, segundosTooltip);
-        btnEliminar.disabled = false;
-        btnEliminar.style.cursor = 'pointer';
-      } else if (esEditar) {
-        //asignarTooltipUnico2(precio1El, () => `Precio Venta actual: ${precio1El.value}`, segundosTooltip);
-        //asignarTooltipUnico2(precio2El, () => `Precio Deudor actual: ${precio2El.value}`, segundosTooltip);
-        btnGuardarEditar.disabled = false;
-        btnGuardarEditar.style.cursor = 'pointer';
-      }
-
-      // Habilitar botones
-      //btnPrincipal.disabled = false;
-      //btnPrincipal.style.cursor = 'pointer';
-      btnEliminar.disabled = false;
-      btnEliminar.style.cursor = 'pointer';
-      btnSiguiente.disabled = coincidencias.length <= 1;
-      btnAnterior.disabled = indiceActual === 0;
-
-    } else {
-      articuloSeleccionado = null;
-      idEl.textContent = nombreEl.textContent = precio1El.textContent = precio2El.textContent = "-";
-      //btnPrincipal.disabled = true;
-      //btnPrincipal.style.cursor = 'not-allowed';
-      if (esEliminar) {
-        btnEliminar.disabled = true;
-        btnEliminar.style.cursor = 'not-allowed';
-      } else if (esEditar) {
-        btnGuardarEditar.disabled = true;
-        btnGuardarEditar.style.cursor = 'not-allowed';
-      }
-      btnSiguiente.disabled = btnAnterior.disabled = true;
-      asignarTooltipsModalEliminar();
-    }
-  }
-}
-
-// 🗑️ Eliminar artículo actual
-function eliminarArticuloSeleccionado() {
-  if (!articuloSeleccionado) return;
-  origen = "modalEliminar";
-
-  if (confirm(`¿Seguro que querés eliminar "${articuloSeleccionado.PRODUCTO}"?`)) {
-    datos = datos.filter(obj => obj !== articuloSeleccionado);
-    mostrarMensajeOK(`${Icons.eliminar} Artículo: ${articuloSeleccionado.PRODUCTO} eliminado correctamente.!`, origen);
-    mostrarTabla(datos);
-
-    // Quitar del array de coincidencias y actualizar
-    coincidencias.splice(indiceActual, 1);
-    if (indiceActual >= coincidencias.length) indiceActual = 0;
-    actualizarVistaCoincidencia(modalEliminar);
-    //mostrarMensajeOK(`✖️ Artículo: ${articuloSeleccionado.PRODUCTO} eliminado correctamente.!`, "modalEliminar");
-    cerrarModalEliminar();
-    if (!estadoTemporizador) {
-      estadoTemporizador = true;
-      segundos = 3500;
-      iniciarCSVTemporizador(segundos);
-    }
-  }
-}
 // 🔁 Comprobar cada X tiempo si los datos visibles cambiaron
 function iniciarCSVTemporizador(tiempo) {
   //console.log(estadoTemporizador);
@@ -1301,45 +1296,45 @@ function detenerCSVTemporizador() {
 }
 
 // 🧩 Función principal
-function comprobarCambiosCSV() {
-  try {
-    const separador = ';';
-    const columnas = headers;
-    const lineas = [columnas.join(separador)];
+// function comprobarCambiosCSV() {
+//   try {
+//     const separador = ';';
+//     const columnas = headers;
+//     const lineas = [columnas.join(separador)];
 
-    // 🧾 Convertir los datos actuales de la tabla al mismo formato CSV
-    datos.forEach(obj => {
-      const fila = columnas.map(c => {
-        const valor = (obj[c] || '').toString().replace(/"/g, '');
-        return `${valor}`;
-      }).join(separador);
-      lineas.push(fila);
-    });
+//     // 🧾 Convertir los datos actuales de la tabla al mismo formato CSV
+//     datos.forEach(obj => {
+//       const fila = columnas.map(c => {
+//         const valor = (obj[c] || '').toString().replace(/"/g, '');
+//         return `${valor}`;
+//       }).join(separador);
+//       lineas.push(fila);
+//     });
 
-    const csvActual = lineas.join('\n'); // CSV actual generado
-    //console.log(csvActual);
-    const csvGuardado = localStorage.getItem("csvData"); // CSV guardado
+//     const csvActual = lineas.join('\n'); // CSV actual generado
+//     //console.log(csvActual);
+//     const csvGuardado = localStorage.getItem("csvData"); // CSV guardado
 
-    if (!csvGuardado) {
-      // //console.log("💾 No había CSV guardado, creando uno nuevo...");
-      //localStorage.setItem("csvData", csvActual);
-      return;
-    }
+//     if (!csvGuardado) {
+//       // //console.log("💾 No había CSV guardado, creando uno nuevo...");
+//       //localStorage.setItem("csvData", csvActual);
+//       return;
+//     }
 
-    // ⚖️ Comparar cadenas CSV completas
-    if (csvActual.trim() !== csvGuardado.trim()) {
-      localStorage.setItem("csvData", csvActual);
-      origen = "compruebaCambios";
-      mostrarMensajeOK(`${Icons.advertencia} Se detectaron cambios en los datos de LocalStorage.!<br>${Icons.guardar} Cambios guardados automáticamente`, origen);
-      detenerCSVTemporizador();
-    } else {
-      // console.log("✅ El CSV visible coincide con el almacenado.");
-    }
+//     // ⚖️ Comparar cadenas CSV completas
+//     if (csvActual.trim() !== csvGuardado.trim()) {
+//       localStorage.setItem("csvData", csvActual);
+//       origen = "compruebaCambios";
+//       mostrarMensajeOK(`${Icons.advertencia} Se detectaron cambios en los datos de LocalStorage.!<br>${Icons.guardar} Cambios guardados automáticamente`, origen);
+//       detenerCSVTemporizador();
+//     } else {
+//       // console.log("✅ El CSV visible coincide con el almacenado.");
+//     }
 
-  } catch (err) {
-    console.error("❌ Error al comprobar cambios CSV:", err);
-  }
-}
+//   } catch (err) {
+//     console.error("❌ Error al comprobar cambios CSV:", err);
+//   }
+// }
 // 🧩 Función principal
 function comprobarCambiosDatos() {
   try {
@@ -1587,24 +1582,24 @@ function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
 
   jsonData.forEach(item => {
     const valor = item.ACTUALIZADO?.trim();
-    if (!valor || valor === "0") return; // ignorar vacíos o "0"
+    //if (!valor || valor === "0") return; // ignorar vacíos o "0"
 
     const [dia, mes, año] = valor.split("/").map(Number);
     if (!dia || !mes || !año) return;
 
     const fecha = new Date(año, mes - 1, dia);
     fechas.push(fecha);
-    //console.log(valor);
-    if (origenFecha === 'original') {
-      // //console.log(`Fechas Originales: ${valor}`);
-      FechasViejas.push(valor);
-    } else {
-      //console.log(`Fechas Actuales: ${valor}`);
-      FechasActuales.push(valor);
-    }
+    console.log(valor);
+    // if (origenFecha === 'original') {
+    //   // //console.log(`Fechas Originales: ${valor}`);
+    //   FechasViejas.push(valor);
+    // } else {
+    //   //console.log(`Fechas Actuales: ${valor}`);
+    //   FechasActuales.push(valor);
+    // }
     // Guardar en arrays externos si los estás usando
     if (origenFecha === "original") FechasViejas.push(valor);
-    else if (origenFecha === "nueva") FechasActuales.push(valor);
+    else if (origenFecha === "actuales") FechasActuales.push(valor);
   });
 
   if (!fechas.length) return null;
@@ -1618,32 +1613,32 @@ function obtenerFechaMasRecienteFormatoJSON(jsonData, origenFecha) {
   return `${dia}/${mes}/${año}`;
 }
 // 🔹 Convierte el campo "ACTUALIZADO" de cada objeto a Date y devuelve la más reciente
-function obtenerFechaMasRecienteJSON(jsonData) {
-  if (!Array.isArray(jsonData) || jsonData.length === 0) return null;
+// function obtenerFechaMasRecienteJSON(jsonData) {
+//   if (!Array.isArray(jsonData) || jsonData.length === 0) return null;
 
-  const fechas = [];
+//   const fechas = [];
 
-  jsonData.forEach(item => {
-    const valor = item.ACTUALIZADO?.trim();
-    if (!valor || valor === "0") return; // ignorar vacíos o "0"
+//   jsonData.forEach(item => {
+//     const valor = item.ACTUALIZADO?.trim();
+//     if (!valor || valor === "0") return; // ignorar vacíos o "0"
 
-    const [dia, mes, año] = valor.split("/").map(Number);
-    if (!dia || !mes || !año) return;
+//     const [dia, mes, año] = valor.split("/").map(Number);
+//     if (!dia || !mes || !año) return;
 
-    fechas.push(new Date(año, mes - 1, dia));
-  });
-  //console.log(fechas);
+//     fechas.push(new Date(año, mes - 1, dia));
+//   });
+//   //console.log(fechas);
 
-  if (!fechas.length) return null;
+//   if (!fechas.length) return null;
 
-  const fechaMax = new Date(Math.max(...fechas.map(f => f.getTime())));
+//   const fechaMax = new Date(Math.max(...fechas.map(f => f.getTime())));
 
-  const dia = String(fechaMax.getDate()).padStart(2, "0");
-  const mes = String(fechaMax.getMonth() + 1).padStart(2, "0");
-  const año = fechaMax.getFullYear();
+//   const dia = String(fechaMax.getDate()).padStart(2, "0");
+//   const mes = String(fechaMax.getMonth() + 1).padStart(2, "0");
+//   const año = fechaMax.getFullYear();
 
-  return `${dia}/${mes}/${año}`;
-}
+//   return `${dia}/${mes}/${año}`;
+// }
 
 // Funcion que busca las fechas diferentes
 function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
@@ -1651,6 +1646,7 @@ function obtenerFechasMasNuevas(fechasOriginal, fechasNuevas) {
   for (let i = 0; i < fechasNuevas.length; i++) {
     const fOrig = fechasOriginal[i];
     const fNueva = fechasNuevas[i];
+    console.log(i);
     if (!fOrig || !fNueva) continue;
 
     // Solo guarda si la nueva es posterior
@@ -1688,15 +1684,17 @@ setTimeout(() => {
     //console.log(datosOriginales);
   }
   const cambios = obtenerFechasMasNuevas(FechasViejas, FechasActuales);
-  // console.log(cambios);
+  console.log(cambios);
   // console.log(datos.length);
   // console.log(cantidadActual);
   // console.log(cantidadOriginal);
   // console.log(contador);
-  //console.log(`FechasViejas: ${FechasViejas}`);
+  console.log(`FechasViejas: ${FechasViejas}`);
   //console.log(`FechasActuales: ${FechasActuales}`);
-  if (cantidadOriginal !== cantidadActual) {
   const originalesDiferentes = cambios.map(c => c.original);
+  console.log(originalesDiferentes);
+  if (cantidadOriginal !== cantidadActual) {
+  //const originalesDiferentes = cambios.map(c => c.original);
   const actualesDiferentes = cambios.map(c => c.nueva);
     if (originalesDiferentes.length > 0 || cantidadActual !== cantidadOriginal) {
       if (esLocal()) {

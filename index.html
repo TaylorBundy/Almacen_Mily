@@ -81,13 +81,17 @@
     <h3>Editar Artículo</h3>
 
     <label class="labelModal">Buscar por ID o NOMBRE:</label>
-    <div class="busquedaContainer">
+    <div class="buscarContainer">
       <input type="text" id="buscarEditar" placeholder="Ej: 102 o Pan Lactal" onkeyup="buscarArticuloEditar()">
-      <button id="btnAnteriorEditar" title="Anterior">◀</button>
-      <button id="btnSiguienteEditar" title="Siguiente" onclick="mostrarSiguienteCoincidencia2()">▶</button>
+      <button id="btnAnteriorEditar" title="" onclick="mostrarAnteriorCoincidencia2()" onmouseover="mostrarTooltip(event, TitulosList.btnAnterior); event.stopPropagation();"
+      onmouseout="ocultarTooltip(2000)"><img id="btnImageSiguiente" src="icons/atras.avif"></button>
+      <button id="btnSiguienteEditar" title="" onclick="mostrarSiguienteCoincidencia2()" onmouseover="mostrarTooltip(event, TitulosList.btnSiguiente); event.stopPropagation();"
+      onmouseout="ocultarTooltip(2000)"><img id="btnImageSiguiente" src="icons/adelante.avif"></button>
     </div>
-
-    <p id="contadorEditar" class="contadorCoincidencias">0 coincidencias</p>
+    <div class="contadorContainer">
+      <p id="contadorEditar" class="contadorCoincidencias">0 coincidencias</p>
+      <p id="contadorEditarTotal" class="contadorCoincidencias">0 de 0</p>
+    </div>
 
     <div class="resultadoEditar">
       <div class="campo">
@@ -96,11 +100,11 @@
       <div class="campo">
         <strong>Nombre:</strong> <span id="nombreEncontrado">-</span>
       </div>
-      <div class="campo">
+      <div class="campoPrecio">
         <strong>Precio Venta: <span id="precioEncontrado">-</span> </strong>
         <input type="text" id="nuevoPrecio1Editar" onfocus="formatearCampo(this)" placeholder="Ej: 3500.00">
       </div>
-      <div class="campo">
+      <div class="campoPrecio">
         <strong>Precio Deudor: <span id="precioEncontrado2">-</span> </strong>
         <input type="text" id="nuevoPrecio2Editar" onfocus="formatearCampo(this)" placeholder="Ej: 3200.00 (opcional)">
       </div>
@@ -157,6 +161,7 @@
     </div>
     <!-- 🔢 Contador de coincidencias -->
     <p id="contadorCoincidencias" class="contadorCoincidencias">0 coincidencias</p>
+    <p id="contadorTotal" class="contadorCoincidencias">0 de 0</p>
 
     <!-- 📋 Resultado -->
     <div id="resultadoEliminar" class="resultadoEliminar"> <!-- onmouseover="mostrarTooltip(event, TitulosList.resultadoEliminar); event.stopPropagation();" onmouseout="ocultarTooltip()"> -->
