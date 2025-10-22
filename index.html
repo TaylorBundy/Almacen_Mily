@@ -213,7 +213,7 @@
   //const csvGuardado = localStorage.getItem("csvData");
   //const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
 
-  async function guardarEnGitHub() {
+  async function guardarEnGitHub2() {
     const repo = "TaylorBundy/Almacen_Mily";
     const contenido = localStorage.getItem("jsonData"); // Ejemplo de tu tabla
 
@@ -232,6 +232,33 @@
     });
 
     alert("✅ Se envió la actualización a GitHub");
+  }
+  async function guardarEnGitHub() {
+    const repo = "TaylorBundy/Almacen_Mily"; // tu repo
+    const workflow = "actualizar-json.yml"; // nombre del workflow
+    const contenido = localStorage.getItem("jsonData"); // tu JSON
+
+    // Llamar al API de GitHub para disparar workflow_dispatch
+    const response = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${workflow}/dispatches`, {
+      method: "POST",
+      headers: {
+        "Accept": "application/vnd.github.v3+json"
+        // ⚠️ No hay token aquí, seguridad total
+      },
+      body: JSON.stringify({
+        ref: "main", // branch donde está el workflow
+        inputs: {
+          contenido: contenido
+        }
+      })
+    });
+
+    if (response.ok) {
+      alert("✅ Workflow disparado correctamente. GitHub actualizará el JSON.");
+    } else {
+      alert("❌ Error al disparar workflow. Ver consola.");
+      console.log(await response.text());
+    }
   }
 
 
