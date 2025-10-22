@@ -1,34 +1,26 @@
-name: Actualizar JSON
+name: Actualizar JSON desde la web
 
 on:
-  push:
-    branches:
-      - main
-  schedule:
-    - cron: '0 3 * * *'
+  workflow_dispatch: # Permite ejecutarlo desde tu JS (POST a la API)
+  repository_dispatch:
+    types: [actualizar-json]
 
 jobs:
   actualizar:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 🧱 Clonar repositorio
+      - name: Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: 🟢 Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Actualizar JSON con datos recibidos
+        run: |
+          echo "${{ github.event.client_payload.contenido }}" > Lista_Precios_2.JSON
 
-      - name: 📦 Instalar dependencias
-        run: npm install
-
-      - name: ⚙️ Ejecutar script
-        run: node actualizar_json.js
-
-      - name: 💾 Commit y push
+      - name: Subir cambios
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Actualización automática del JSON" || echo "Sin cambios"
+          git add Lista_Precios_2.JSON
+          git commit -m "🔄 Actualización automática de Lista_Precios_2.JSON"
           git push
