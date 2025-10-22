@@ -214,7 +214,6 @@
   //const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
 
   async function guardarEnGitHub() {
-    //const token = ""; // ⚠️ Nunca pongas esto en público
     const repo = "TaylorBundy/Almacen_Mily";
     const contenido = localStorage.getItem("jsonData"); // Ejemplo de tu tabla
 
@@ -222,7 +221,6 @@
       method: "POST",
       headers: {
         "Accept": "application/vnd.github.everest-preview+json",
-        //"Authorization": `token ${token}`,
         "Authorization": `token ${secrets.GH_TOKEN}`,
       },
       body: JSON.stringify({
