@@ -97,6 +97,9 @@ let intervalContador = null;
 const contadorCerrar = document.getElementById("contadorCerrar");
 let segundosRestantes = null;
 let timeoutID;
+const plataforma = navigator.userAgent;
+const Logo = document.querySelectorAll('.logo');
+
 
 const Icons = {
   csv: "📦",
@@ -137,6 +140,7 @@ const TitulosList = {
   btnFormularioAgregar: `💡 Abrir formulario para ${Icons.agregar}"agregar" artículo nuevo.!`,
   btnFormularioEditar: `💡 Abrir formulario para ${Icons.editar}"editar" artículo.!`,
   btnGuardar: `${Icons.guardar} Guardar los cambios realizados en la base de datos.`,
+  btnGuardarEditar: `${Icons.guardar} Guardar los cambios realizados en el artículo.`,
   btnAgregar: `${Icons.agregar} Agregar el nuevo artículo a la base de datos.`,
   btnCargar: `${Icons.csv}📝📂 Cargar archivo CSV con la base de datos de productos.`,
   btnCancelar: `${Icons.cancelar} Cancelar y cerrar este cuadro.`,
@@ -165,9 +169,11 @@ document.body.appendChild(tooltip);
 // 👁️ Mostrar tooltip
 function mostrarTooltip(e, texto) {
   tooltip.innerText = texto;
-  tooltip.style.left = (e.clientX + 10) + 'px';
-  tooltip.style.top = (e.clientY + 10) + 'px';
-  tooltip.style.display = 'block';
+  tooltip.style.left = (e.clientX + 20) + 'px';
+  tooltip.style.top = (e.clientY + 30) + 'px';
+  if (!plataforma.includes('Android')) {
+    tooltip.style.display = 'block';
+  }
   estadoTooltip = true;
   //setTimeout(() => {
     //ocultarTooltip();
@@ -333,6 +339,11 @@ function esPrecioValido(valor) {
 // Deshabilitar búsqueda y botones si no hay datos
 window.onload = function() {
   contador = items.textContent.split(': ')[1];
+  if (plataforma.includes('Android')) {
+    Logo.forEach(logo => {
+      logo.setAttribute('src', 'favicon.ico');
+    });
+  }
   if (contador == '0') {
     //inputSearch.disabled = true;
     //inputSearch.style.cursor = 'not-allowed';
@@ -518,14 +529,14 @@ function mostrarTabla(lista) {
     const fila = document.createElement('tr');
     fila.dataset.index = indice + 1; // ← almacena el índice original
     fila.innerHTML = `
-      <td class="indice">${idx + 1}</td>
-      <td class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
-      <td class="id">${r.ID || ''}</td>
-      <td class="producto" id="producto${idx + 1}" onmouseover="Titulos(this.id)">${r.PRODUCTO || ''}</td>
-      <td class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${r.PRECIO || ''}</td>
+      <td data-label="indice" class="indice">${idx + 1}</td>
+      <td data-label="Código" class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
+      <td data-label="Id" class="id">${r.ID || ''}</td>
+      <td data-label="Producto" class="producto" id="producto${idx + 1}" onmouseover="Titulos(this.id)">${r.PRODUCTO || ''}</td>
+      <td data-label="Precio Venta" class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${r.PRECIO || ''}</td>
 
-      <td class="precio2N" id="precio2-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
-      <td class="fecha">${r.ACTUALIZADO || ''}</td>
+      <td data-label="Precio Deudor" class="precio2N" id="precio2-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
+      <td data-label="Fecha" class="fecha">${r.ACTUALIZADO || ''}</td>
     `;
     tbody.appendChild(fila);
     indicesOriginales = {indices: indice, ids: r.PRODUCTO};

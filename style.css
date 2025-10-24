@@ -1,14 +1,57 @@
+html {
+    overflow-y: scroll;
+}
 body {
     font-family: Arial, sans-serif;
     background: #f3f4f6;
-    padding: 20px;
+    padding: 0 20px;
+    margin: 0;
+}
+.LogoContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 5px;
+    width: 80%;
+    margin: auto;
+    /* background: white; */
+    background: #ffab50;
+    /* padding: 20px; */
+    border-radius: 10px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+.ImgContainer {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    /* margin: auto; */
+    /* margin-bottom: 5px; */
+}
+.LogoContainer h1 {
+    position: relative;
+    margin: 10px;
+    z-index: 2;
+}
+.logo {
+    position: relative;
+    padding: 5px;
+    border-radius: 8px;
+    /* height: 40%; */
+    /* z-index: 1; */
+    /* border: 1px solid blue; */
 }
 h2 {
     color: #333;
 }
 .panel {
+    width: 90%;
+    margin: auto;
+    margin-top: 5px;
     background: white;
-    padding: 20px;
+    padding: 0 20px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
@@ -359,7 +402,7 @@ td[contenteditable="true"], .codigoN {
     color: white;
   } */
 
-#btnAbrirModal, #btnAbrirModalEliminar, #btnAbrirModalEditar, #btnGuardar {
+#btnAbrirModal, #btnAbrirModalEliminar, #btnAbrirModalEditar, #btnGuardar, #btnCargar {
     box-shadow: inset 0 0 10px #000;
     border: none;
     border-radius: 5px;
@@ -368,8 +411,110 @@ td[contenteditable="true"], .codigoN {
     justify-content: center;
 }
 
-#btnAbrirModal:hover, #btnAbrirModalEliminar:hover, #btnAbrirModalEditar:hover, #btnGuardar:hover {
+#btnAbrirModal:hover, #btnAbrirModalEliminar:hover, #btnAbrirModalEditar:hover, #btnGuardar:hover, #btnCargar:hover {
     transform: scale(1.08);
     box-shadow: 0 0 15px #000;
     font-weight: bold;
+}
+
+/* @media only screen and (min-width: 360px) and (max-width: 1440px) { */
+@media (min-width: 360px) and (max-width: 768px) {
+    body {
+        padding: 0;
+    }
+    /* .SearchContainer {
+        display: grid;
+    } */
+    h2 {
+        font-size: 12px;
+        margin: 8px 0;
+    }
+    .FileContainer {
+        display: none;
+    }
+    .porcentajeContainer, .SearchContainer {
+        display: table-row;
+        width: 80%;
+    }
+    #btnAbrirModal, #btnAbrirModalEliminar, #btnAbrirModalEditar, #btnGuardar, #btnCargar {
+        width: 110px;
+        font-size: 10px;
+        padding: 5px;
+    }
+    .LogoContainer h1 {
+        font-size: 12px;
+    }
+    .ImgContainer {
+        align-items: center;
+    }
+    #logo1, #logo2 {
+        height: 40%;
+    }
+    /* #logo2 {
+        display: none;
+    } */
+    .chkContainer {
+        display: flex;
+        align-items: center;
+        font-size: 10px;
+    }
+    #porcentajeInput, #searchInput {
+        width: 80%;
+        margin: 0;
+        border-radius: 5px;
+        padding: 5px;
+    }
+    .searching, .porcentajeImg {
+        position: relative;
+        top: 6px;
+    }
+    .panel {
+        display: grid;
+        justify-items: center;
+        padding: 0 5px;
+        /* margin: 0 5px; */
+        /* width: 100%; */
+        margin: auto;
+    }
+    #contador {
+        font-size: 12px;
+        margin: 0;
+    }
+    table {
+        font-size: 14px;
+        margin: 0;
+    }
+    thead {
+        display: none;
+      }
+      tr {
+        display: block;
+        margin-bottom: 5px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 8px;
+      }
+      td {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 8px;
+        width: auto;
+      }
+      .indice, .id, .fecha {
+        width: auto;
+      }
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        text-transform: capitalize;
+      }
+      #modal, #container, #modalEditar, #containerEditar, #modalEliminar, #containerEliminar {
+        width: 100%;
+      }
+      #nuevoCodigo, #nuevoNombre, #nuevoPrecio1, #nuevoPrecio2 {
+        width: 80%;
+        margin: 0;
+        padding: 5px;
+        border-radius: 5px;
+    }
 }

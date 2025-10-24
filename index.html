@@ -8,8 +8,21 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- <div class="cabecera">
+    <div class="LogoContainer">
+      <img id="logo" src="images/Logo.avif" alt="Logo Almacén Mily">
+      <h1>Almacén Mily - Gestión de Artículos</h1>
+    </div>
+  </div> -->
 
 <div class="panel">
+  <div class="LogoContainer">
+    <div class="ImgContainer">
+      <img class="logo" id="logo1" src="images/Logo.avif" alt="Logo Almacén Mily">
+      <img class="logo" id="logo2" src="images/Logo.avif" alt="Logo Almacén Mily">
+    </div>
+    <h1>Almacén Mily - Gestión de Artículos</h1>
+  </div>
   <h2>📦 Búsqueda de Artículos</h2>
   <div class="FileContainer">
     <img id="btnImage" src="icons/add-document.avif">
@@ -25,7 +38,7 @@
     <input type="file" id="fileInput" accept=".csv"><br>
   </div>
   <div class="porcentajeContainer">
-    <img id="btnImage" src="icons/porcentaje.avif">
+    <img id="btnImage" class="porcentajeImg" src="icons/porcentaje.avif">
     <input type="text" id="porcentajeInput" maxlength="3" placeholder="Aplicar % Deudores" onmouseover="mostrarTooltip(event, TitulosList.porcentajeInput)" onmouseout="ocultarTooltip(2000)">
     <div class="chkContainer" onmouseover="mostrarTooltip(event, TitulosList.chkPorcentaje)" onmouseout="ocultarTooltip(2000)">
       <input type="checkbox" class="radio" id="porcentajeChk" onmouseover="mostrarTooltip(event, TitulosList.chkPorcentaje)" onmouseout="ocultarTooltip(2000)">Mostrar porcentaje deudores
@@ -113,7 +126,7 @@
     </div>
 
     <div class="btnContainer">
-      <button id="btnGuardarEditar" class="btnAceptar" disabled>
+      <button id="btnGuardarEditar" class="btnAceptar" disabled onmouseover="mostrarTooltip(event, TitulosList.btnGuardarEditar); event.stopPropagation();" onmouseout="ocultarTooltip(2000)">
         <img id="btnImage" src="icons/ok.avif" alt=""> Guardar
       </button>
       <button id="btnCancelarEditar" class="btnCancelar" onclick="cerrarModalEditar()" onmouseover="mostrarTooltip(event, TitulosList.btnCancelar); event.stopPropagation();" onmouseout="ocultarTooltip(2000)">
