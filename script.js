@@ -25,6 +25,8 @@ const regexPrecio = /^\$\s\d{1,3}(\.\d{3})*,\d{2}$/;
 const fechaActual = new Date().toLocaleDateString();
 let porcentaje = null;
 const chkPorcentaje = document.getElementById('porcentajeChk');
+const chkPorcentajeCosto = document.getElementById('porcentajeChkCosto');
+const inputPorcentajeCosto = document.getElementById('porcentajeCostoInput');
 const fileName = document.querySelector('#fileInput');
 const archivo = 'Lista_Precios.csv';
 let nombre = null;
@@ -55,6 +57,8 @@ let desdeDonde = null;
 let numeroContador;
 let numeroEncontrado;
 let timeoutCerrarModal = null;
+let precioCosto;
+let porcentajeCosto;
 const modal = document.getElementById('modal');
 const modalCargar = document.getElementById("modalCargar");
 const modalEditar = document.getElementById("modalEditar");
@@ -99,7 +103,8 @@ let segundosRestantes = null;
 let timeoutID;
 const plataforma = navigator.userAgent;
 const Logo = document.querySelectorAll('.logo');
-
+const PorcentajeCosto = document.querySelector('.PorcentajeCosto');
+const tbody = document.querySelector("#tabla tbody");
 
 const Icons = {
   csv: "📦",
@@ -299,7 +304,7 @@ btnLimpiar.addEventListener('click', () => {
   limpiarInputs('#modal'); // Limpia todos los inputs dentro del formulario con id="miFormulario"
 });
 
-// 🔹 Detectar cambios en el input de porcentaje con retardo de 1 segundo
+// 🔹 Detectar cambios en el input de porcentaje DEUDORES con retardo de 1 segundo
 document.getElementById('porcentajeInput').addEventListener('input', function() {
   setTimeout(() => {
     if (this.value === '') {
@@ -310,6 +315,50 @@ document.getElementById('porcentajeInput').addEventListener('input', function() 
     recalcularPrecios();
   }, 1000);
 })
+// 🔹 Detectar cambios en el input de porcentaje COSTO con retardo de 1 segundo
+// si estamos en windows.
+// si estamos en android usamos change ya que el input no detecta bien los cambios
+if (!plataforma.includes('Android')) {
+  //document.getElementById('porcentajeCostoInput').addEventListener('input', function() {
+  inputPorcentajeCosto.addEventListener('input', function() {
+    setTimeout(() => {
+      if (this.value === '') {
+        porcentajeCosto = 0;
+      } else {
+        porcentajeCosto = this.value;
+      }
+      //recalcularPrecios();
+      mostrarTabla(datos);
+    }, 1000);
+  })
+} else if (plataforma.includes('Android')) {
+  inputPorcentajeCosto.addEventListener('change', function() {
+    //setTimeout(() => {
+      if (this.value === '') {
+        porcentajeCosto = 0;
+      } else {
+        porcentajeCosto = this.value;
+      }
+      //recalcularPrecios();
+      mostrarTabla(datos);
+    //}, 1000);
+  })
+}
+// mostrar precio COSTO cuando checkeamos el chekbox
+// porcentajeCosto establecido por defecto en %60
+chkPorcentajeCosto.addEventListener("change", () => {
+  if (chkPorcentajeCosto.checked) {
+    const valorInput = parseFloat(inputPorcentajeCosto.value);
+    //porcentajeCosto = document.getElementById('porcentajeCostoInput')?.value || 60;
+    porcentajeCosto = !isNaN(valorInput) ? valorInput : 60;
+  } else {
+    porcentajeCosto = 0;
+    if (inputPorcentajeCosto.value !== '') {
+      inputPorcentajeCosto.value = '';
+    }
+  }
+  mostrarTabla(datos);
+});
 // 🔹 Detectar cambios en el input de porcentaje
 //document.getElementById('porcentajeInput').addEventListener('input', recalcularPrecios);
 // 🔹 Funciones auxiliares
@@ -324,12 +373,14 @@ function desformatearPrecio(valor) {
 }
 // 🔹 Recalcular precios según porcentaje
 function recalcularPrecios() {
-  const factor = 1 + porcentaje / 100;
-  datos.forEach(obj => {
-    const p1 = desformatearPrecio(obj.PRECIO || '0');
-    const nuevo = p1 * factor;
-    obj.PRECIO2 = formatearPrecio(nuevo);
-  });
+  //if (!plataforma.includes('Android')) {
+    const factor = 1 + porcentaje / 100;
+    datos.forEach(obj => {
+      const p1 = desformatearPrecio(obj.PRECIO || '0');
+      const nuevo = p1 * factor;
+      obj.PRECIO2 = formatearPrecio(nuevo);
+    });
+  //}
   mostrarTabla(datos);
 }
 // Validar formato de precio
@@ -343,6 +394,8 @@ window.onload = function() {
     Logo.forEach(logo => {
       logo.setAttribute('src', 'favicon.ico');
     });
+    PorcentajeCosto.style.display = 'table-row';
+    porcentaje = document.getElementById('porcentajeCostoInput')?.value || 60;
   }
   if (contador == '0') {
     //inputSearch.disabled = true;
@@ -528,16 +581,43 @@ function mostrarTabla(lista) {
     const indice = r._index ?? idx; // usa el original si existe
     const fila = document.createElement('tr');
     fila.dataset.index = indice + 1; // ← almacena el índice original
-    fila.innerHTML = `
-      <td data-label="indice" class="indice">${idx + 1}</td>
-      <td data-label="Código" class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
-      <td data-label="Id" class="id">${r.ID || ''}</td>
-      <td data-label="Producto" class="producto" id="producto${idx + 1}" onmouseover="Titulos(this.id)">${r.PRODUCTO || ''}</td>
-      <td data-label="Precio Venta" class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${r.PRECIO || ''}</td>
-
-      <td data-label="Precio Deudor" class="precio2N" id="precio2-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
-      <td data-label="Fecha" class="fecha">${r.ACTUALIZADO || ''}</td>
-    `;
+    // si la plataforma no es android muestra la tabla en formato original
+    // sin mostrar el precio costo
+    if (!plataforma.includes('Android')) {
+      fila.innerHTML = `
+        <td data-label="indice" class="indice">${idx + 1}</td>
+        <td data-label="Código" class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
+        <td data-label="Id" class="id">${r.ID || ''}</td>
+        <td data-label="Producto" class="producto" id="producto${idx + 1}" style="background:#ffe8d3;" onmouseover="Titulos(this.id)">${r.PRODUCTO || ''}</td>
+        <td data-label="Precio Venta" class="precio1N" id="precio-${idx + 1}" style="background:#fff8d3;" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${r.PRECIO || ''}</td>
+        <td data-label="Precio Deudor" class="precio2N" id="precio2-${idx + 1}" style="background-color:#fff8d3;" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
+        <td data-label="Fecha" class="fecha">${r.ACTUALIZADO || ''}</td>
+      `;
+    // si la plataforma es adroid muestra la tabla en formato tarjeta
+    // para que sea visiblemente mas amigable y entendible
+    // a su vez mostramos en la tabla el precio costo de cada articulo teniendo en cuenta el porcentaje
+    // de ganancia aplicado por el propietario
+    } else {
+      // Al precio venta, le retiramos el formato moneda y lo pasamos a string
+      const precioVenta = desformatearPrecio(r.PRECIO || '0');
+      // al precio venta le aplicamos un 60% de descuento, correspondiente al margen
+      // de ganancias utilizado
+      //const nuevo = precioVenta * 0.6;
+      const nuevo = precioVenta * porcentajeCosto / 100;
+      // al precio de costo con el 60% restado lo volvemos a formatear a moneda para ser mostrado en la tabla
+      precioCosto = formatearPrecio(nuevo);
+      //console.log(precioCosto);
+      fila.innerHTML = `
+        <td data-label="indice" class="indice">${idx + 1}</td>
+        <td data-label="Código" class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
+        <td data-label="Id" class="id">${r.ID || ''}</td>
+        <td data-label="Producto" class="producto" id="producto${idx + 1}" onmouseover="Titulos(this.id)">${r.PRODUCTO || ''}</td>
+        <td data-label="Precio Costo" class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${precioCosto || ''}</td>
+        <td data-label="Precio Venta" class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${r.PRECIO || ''}</td>
+        <td data-label="Precio Deudor" class="precio2N" id="precio2-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
+        <td data-label="Fecha" class="fecha">${r.ACTUALIZADO || ''}</td>
+      `;
+    }
     tbody.appendChild(fila);
     indicesOriginales = {indices: indice, ids: r.PRODUCTO};
     //console.log(`indice: ${indicesOriginales.indices} - id: ${indicesOriginales.ids}`);
@@ -559,6 +639,12 @@ function mostrarTabla(lista) {
     //console.log(`indice: ${indicesOriginales.indices} - id: ${indicesOriginales.ids}`);
   //});
 }
+// document.querySelector('#tabla tbody tr').addEventListener('mouseover', function(e) {
+//   //e.forEachTarget = e.target;
+//   e.style.background = '#fff5c0';
+// });
+
+// mostrar precio deudores cuando checkeamos el chekbox
 chkPorcentaje.addEventListener("change", () => {
   if (chkPorcentaje.checked) {
     porcentaje = document.getElementById('porcentajeInput')?.value || 30;
@@ -2200,6 +2286,33 @@ function esLocal() {
   return false;
 }
 
+if (!plataforma.includes('Android')) {
+  tbody.addEventListener("mouseover", e => {
+    const fila = e.target.closest("tr");
+    if (!fila) return;
+    // Guarda el color original de cada celda solo una vez
+    fila.querySelectorAll("td").forEach(td => {
+      if (!td.dataset.colorOriginal) {
+        td.dataset.colorOriginal = getComputedStyle(td).backgroundColor;
+      }
+      //td.style.backgroundColor = "#ffe8d3"; // color hover fila completa
+      td.style.backgroundColor = "#fbd0a9";
+      td.style.transform = 'scale(1.04)';
+    });
+  });
+
+  tbody.addEventListener("mouseout", e => {
+    const fila = e.target.closest("tr");
+    if (!fila) return;
+
+    // Restaura el color original de cada celda
+    fila.querySelectorAll("td").forEach(td => {
+      td.style.backgroundColor = td.dataset.colorOriginal || "";
+      td.style.transform = 'scale(1)';
+    });
+  });
+}
+
 document.querySelector("#tabla tbody").addEventListener("click", e => {
   const fila = e.target.closest("tr"); // detecta la fila clickeada
   if (!fila) return;
@@ -2210,7 +2323,6 @@ document.querySelector("#tabla tbody").addEventListener("click", e => {
   // Podés llamar a otra función si querés hacer algo más:
   manejarSeleccionArticulo(indiceOriginal);
 });
-
 
 function manejarSeleccionArticulo(idx) {
   const articulo = datos[idx];

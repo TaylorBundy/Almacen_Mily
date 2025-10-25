@@ -90,7 +90,11 @@ button {
 }
 table {
     width: 100%;
-    border-collapse: collapse;
+    /* border-collapse: collapse; */
+    border-collapse: separate;
+    border-spacing: 1px;
+    border: 1px solid;
+    border-radius: 5px;
     margin-top: 15px;
 }
 th, td {
@@ -105,22 +109,23 @@ th {
 tr:nth-child(even) {
     background-color: #f9f9f9;
 }
-td[contenteditable="true"], .codigoN {
+/* td[contenteditable="true"], .codigoN {
     background-color: #fff8d3;
-}
+} */
 .indice {
     width: 10px;
 }
 .codigo, .precio1, .precio2 {
     width: 110px;
 }
-/* .codigoN:hover, .precio1N:hover, .precio2N:hover {
-    transform: scale(1.2);
+/* .codigoN:hover, .producto:hover, .precio1N:hover, .precio2N:hover, tr:hover { */
+tbody tr:hover {
+    /* transform: scale(1); */
     font-weight: bold;
     text-shadow: 0 6px 6px rgba(0, 0, 0, 0.6);
     border-radius: 5px;
-    background-color: #fff5c0;
-} */
+    /* background-color: #fff5c0; */
+}
 .id {
     width: 20px;
 }
@@ -402,7 +407,8 @@ td[contenteditable="true"], .codigoN {
     color: white;
   } */
 
-#btnAbrirModal, #btnAbrirModalEliminar, #btnAbrirModalEditar, #btnGuardar, #btnCargar {
+/* #btnAbrirModal, #btnAbrirModalEliminar, #btnAbrirModalEditar, #btnGuardar, #btnCargar { */
+.btnsPrincipales {
     box-shadow: inset 0 0 10px #000;
     border: none;
     border-radius: 5px;
@@ -410,8 +416,12 @@ td[contenteditable="true"], .codigoN {
     padding: 8px 10px;
     justify-content: center;
 }
+#btnCargar, #btnGuardar2 {
+    width: 200px;
+}
 
-#btnAbrirModal:hover, #btnAbrirModalEliminar:hover, #btnAbrirModalEditar:hover, #btnGuardar:hover, #btnCargar:hover {
+/* #btnAbrirModal:hover, #btnAbrirModalEliminar:hover, #btnAbrirModalEditar:hover, #btnGuardar:hover, #btnCargar:hover { */
+.btnsPrincipales:hover {
     transform: scale(1.08);
     box-shadow: 0 0 15px #000;
     font-weight: bold;
@@ -427,14 +437,23 @@ td[contenteditable="true"], .codigoN {
     } */
     h2 {
         font-size: 12px;
-        margin: 8px 0;
+        /* margin: 8px 0; */
+        margin: 10px 0 5px 0;
     }
     .FileContainer {
         display: none;
     }
-    .porcentajeContainer, .SearchContainer {
+    .porcentajeContainer, .SearchContainer, .PorcentajeCosto {
         display: table-row;
+        position: relative;
         width: 80%;
+        left: 5px;
+    }
+    .PorcentajeCosto .porcentajeImg {
+        top: 4px;
+    }
+    .PorcentajeCosto #porcentajeCostoInput {
+        padding: 2px 5px;
     }
     #btnAbrirModal, #btnAbrirModalEliminar, #btnAbrirModalEditar, #btnGuardar, #btnCargar {
         width: 110px;
@@ -458,8 +477,10 @@ td[contenteditable="true"], .codigoN {
         align-items: center;
         font-size: 10px;
     }
-    #porcentajeInput, #searchInput {
+    #porcentajeInput, #searchInput, #porcentajeCostoInput {
+        position: relative;
         width: 80%;
+        right: 5px;
         margin: 0;
         border-radius: 5px;
         padding: 5px;
@@ -481,6 +502,8 @@ td[contenteditable="true"], .codigoN {
         margin: 0;
     }
     table {
+        border-collapse: collapse;
+        border: none;
         font-size: 14px;
         margin: 0;
     }
@@ -492,7 +515,7 @@ td[contenteditable="true"], .codigoN {
         margin-bottom: 5px;
         border: 1px solid #ccc;
         border-radius: 8px;
-        padding: 8px;
+        padding: 5px;
       }
       td {
         display: flex;
