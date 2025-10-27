@@ -26,7 +26,7 @@
   <h2>📦 Búsqueda de Artículos</h2>
   <div class="FileContainer">
     <img id="btnImage" src="icons/add-document.avif">
-    <label>Cargar base de datos (.CSV): </label>
+    <label>Cargar base de datos (.CSV / .JSON): </label>
     <button id="btnCargar" class="btnsPrincipales"
           onmouseover="mostrarTooltip(event, TitulosList.btnCargar); event.stopPropagation();"
           onmouseout="ocultarTooltip(2000)">
@@ -35,7 +35,7 @@
       <!-- <p id="buscarAnterior">Anterior</p> -->
     </button>
     <span id="fileName">Ningún archivo seleccionado</span>
-    <input type="file" id="fileInput" accept=".csv"><br>
+    <input type="file" id="fileInput" accept=".csv,.json"><br>
   </div>
   <div class="porcentajeContainer">
     <img id="btnImage" class="porcentajeImg" src="icons/porcentaje.avif">
@@ -80,6 +80,19 @@
 <!-- Modal -->
 <div id="modal" aria-label="Modal para agregar artículo">
   <div id="container" onmouseover="mostrarTooltip(event, TitulosList.modales)" onmouseout="ocultarTooltip(2000)">
+    <!-- Cuenta regresiva -->
+    <div id="contadorCerrar" style="
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      display: none;
+      width: 150px;
+    ">El formulario se cerrará en: 5 segundos</div>
     <h3>Agregar Artículo</h3>
     <label class="labelModal">Código Barra:</label>
     <input class="inputNumber" type="number" id="nuevoCodigo" maxlength="13" pattern="\d{0,13}" onkeypress="if(this.value.length==13) return false;" onmouseover="mostrarTooltip(event, TitulosList.codigo); event.stopPropagation();" onmouseout="ocultarTooltip(2000)">
@@ -215,12 +228,23 @@
 <div id="modalCargar">
   <div id="modalContenido">
     <h3>📂 Seleccionar archivo</h3>
-    <p>Seleccione el archivo CSV que desea cargar.</p>
+    <p>Seleccione el archivo "CSV" o "JSON" que desea cargar.</p>
     <button class="boton" id="btnAceptar">Aceptar</button>
     <button class="boton" id="btnCancelar" style="background-color:#6c757d;">Cancelar</button>
   </div>
 </div>
+<!-- Modal para cargar archivo desde github -->
+<div id="modalCargarGithub">
+  <div id="modalContenido">
+    <h3>📂 Seleccionar archivo</h3>
+    <p>Seleccione el archivo "CSV" o "JSON" que desea cargar.</p>
+    <button class="boton" id="btnAceptarCSV">CSV</button>
+    <button class="boton" id="btnAceptarJSON">JSON</button>
+    <button class="boton" id="btnCancelarGithub" style="background-color:#6c757d;">Cancelar</button>
+  </div>
+</div>
 <script src="script.js"></script>
+<script src="cargar_csv.js"></script>
 <script src="cargar_json.js"></script>
 <script>
   // Ejecutar al cargar la página
@@ -228,7 +252,10 @@
   const fileInput = document.querySelector('#fileInput');
   const boton = document.querySelector("#btnCargar");
   const btnAceptar = document.getElementById("btnAceptar");
+  const btnAceptarCSV = document.getElementById("btnAceptarCSV");
+  const btnAceptarJSON = document.getElementById("btnAceptarJSON");
   const btnCancelar = document.getElementById("btnCancelar");
+  const btnCancelarGitHub = document.getElementById("btnCancelarGithub");
   const csvGuardado = localStorage.getItem("csvData");
   //const csvGuardado = localStorage.getItem("csvData");
   //const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
@@ -285,40 +312,101 @@
   async function cargarCSV() {
     const OriginalFile = localStorage.getItem(archivoOriginal);
     // Ver si ya hay datos guardados en localStorage
-    if (csvGuardado) {
-      if (!OriginalFile) {
-          //console.log(`no existe: ${archivoOriginal}`);
-          localStorage.removeItem(csvDatos);
-      } else {
-        //console.log(`existe: ${archivoOriginal}`);
-      }
-      procesarCSV(csvGuardado);
-      fileName2.textContent = localStorage.getItem("csvName") || 'Lista_Precios.csv';
-      observer.disconnect(); // Detener la observación
-      return;
-    }
+    // if (csvGuardado) {
+    //   if (!OriginalFile) {
+    //       //console.log(`no existe: ${archivoOriginal}`);
+    //       localStorage.removeItem(csvDatos);
+    //   } else {
+    //     //console.log(`existe: ${archivoOriginal}`);
+    //   }
+    //   procesarCSV(csvGuardado);
+    //   fileName2.textContent = localStorage.getItem("csvName") || 'Lista_Precios.csv';
+    //   observer.disconnect(); // Detener la observación
+    //   return;
+    // }
 
-    fileInput.addEventListener('change', e => {
-      //console.log('estamos aca');
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const texto = ev.target.result;
-        localStorage.setItem("csvData", texto); // Guardar para uso offline futuro
-        localStorage.setItem("csvName", 'Lista_Precios.csv'); // Guardar para uso offline futuro
-        // si no existen los datos del archivo original en localstorage, los creamos
+    // OJO ESTO ANDA
+  //   fileInput.addEventListener('change', e => {
+  //     //console.log('estamos aca');
+  //     const file = e.target.files[0];
+  //     if (!file) return;
+  //     const reader = new FileReader();
+  //     reader.onload = ev => {
+  //       const texto = ev.target.result;
+  //       localStorage.setItem("csvData", texto); // Guardar para uso offline futuro
+  //       localStorage.setItem("csvName", 'Lista_Precios.csv'); // Guardar para uso offline futuro
+  //       // si no existen los datos del archivo original en localstorage, los creamos
+  //       if (!OriginalFile) {
+  //         //console.log(`no existe: ${archivoOriginal}`);
+  //         localStorage.setItem(archivoOriginal, texto); // Guardar para uso offline futuro
+  //       }
+  //       fileName2.textContent = fileInput.files[0].name;
+  //       nombre = fileName2.textContent;
+  //       procesarCSV(texto);
+  //       //console.log("📦 CSV cargado y guardado localmente");
+  //     };
+  //     reader.readAsText(file, 'UTF-8');
+  //   });
+   //}
+  // TERMINA ACA
+  fileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const extension = file.name.split('.').pop().toLowerCase();
+    const reader = new FileReader();
+
+    reader.onload = ev => {
+      const texto = ev.target.result;
+
+      if (extension === 'csv') {
+        esCSV = true;
+        // 🔹 CSV: comportamiento actual
+        localStorage.setItem("csvData", texto);
+        localStorage.setItem("csvName", 'Lista_Precios.csv');
+
         if (!OriginalFile) {
-          //console.log(`no existe: ${archivoOriginal}`);
-          localStorage.setItem(archivoOriginal, texto); // Guardar para uso offline futuro
+          localStorage.setItem(archivoOriginal, texto);
         }
-        fileName2.textContent = fileInput.files[0].name;
+
+        fileName2.textContent = file.name;
         nombre = fileName2.textContent;
-        procesarCSV(texto);
-        //console.log("📦 CSV cargado y guardado localmente");
-      };
-      reader.readAsText(file, 'UTF-8');
-    });
+        procesarCSV(texto); // función existente para CSV
+        dataBackup(texto);
+
+      } else if (extension === 'json') {
+        esJSON = true;
+        // 📦 JSON - cargar desde el archivo seleccionado
+        try {
+          const data = JSON.parse(texto);
+
+          // Adaptamos la estructura igual que cargarJSON()
+          datos = data.map(item => ({
+            CODIGO: item.CODIGO || item.codigo || '0',
+            ID: item.ID || item.id || '',
+            PRODUCTO: item.PRODUCTO || item.producto || '',
+            PRECIO: item.PRECIO || item.precio || '',
+            PRECIO2: item.PRECIO2 || item.precio2 || '',
+            ACTUALIZADO: item.ACTUALIZADO || item.actualizado || '0'
+          }));
+
+          mostrarTabla(datos);
+          localStorage.setItem('jsonData', JSON.stringify(datos));
+          localStorage.setItem('jsonOriginal', JSON.stringify(datos));
+          dataBackup(JSON.stringify(datos));
+          cantidadOriginal = datos.length;
+          fileName2.textContent = file.name;
+        } catch (err) {
+          console.error("❌ Error al leer el JSON:", err);
+          alert("El archivo JSON no es válido.");
+        }
+      } else {
+        alert("Por favor selecciona un archivo CSV o JSON válido.");
+      }
+    };
+
+    reader.readAsText(file, 'UTF-8');
+  });
   }
 
   // Para probar desde cero
@@ -329,66 +417,131 @@
 
   // Ejecutar automáticamente al cargar la página
   document.addEventListener("DOMContentLoaded", function() {
+    cargarListaPrecios();
     // Uso:
-    if (esLocal()) {
-      console.log("Ejecutando localmente desde index.html");
-      desdeDonde = 'local';
-      //const csvGuardado = localStorage.getItem("csvData");
-      if (csvGuardado) {
-        segundos = 2;
-        if (desdeDonde === 'local') {
-            mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargado", segundos, cargarCSV);
-          //} else {
-            //mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargado", segundos, cargarJSON);
-          }
-      } else {
-        segundos = 2;
-        if (desdeDonde === 'local') {
-          if (btnAceptar.click) {
-            mostrarMensajeConTimer(`ℹ️ No hay ninguna base de datos cargada.!<br>Por favor espere: ${segundos} segundos y seleccione un archivo para abrir.!`, "modalCargando", segundos, cargarCSV);
-          }
-        } //else {
-          //mostrarMensajeConTimer(`ℹ️ No hay ninguna base de datos cargada.!<br>Por favor espere: ${segundos} segundos mientras se carga el archivo del servidor.!`, "modalCargando", segundos, cargarJSON);
-        //}
-      }
-    } else {
-      console.log("Ejecutando desde un servidor (GitHub Pages)");
-      desdeDonde = 'web';
-      const datosGuardados = JSON.parse(localStorage.getItem('jsonData') || 'null');
-      //const OriginalFile = localStorage.getItem(archivoOriginal);
-      //const datosGuardados = JSON.parse(localStorage.getItem('csvData') || 'null');
-      //const csvGuardado = JSON.parse(localStorage.getItem('csvData') || 'null');
-      //cargarJSON();
-      if (datosGuardados) {
-        segundos = 2;
-        //if (desdeDonde === 'local') {
-          //mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargado", segundos, cargarCSV);
-        //} else {
-        mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargadoOnline", segundos, cargarDesdeLocalStorage);
-        //}
-      } else {
-        segundos = 2;
-        //if (!OriginalFile) {
-        mostrarMensajeConTimer(`ℹ️ No hay ninguna base de datos cargada.!<br>Por favor espere: ${segundos} segundos mientras se carga el archivo del servidor.!`, "modalCargandoOnline", segundos, cargarJSON);
-        //}
-        //}
-      }
-    };
+    // if (esLocal()) {
+    //   console.log("Ejecutando localmente desde index.html");
+    //   desdeDonde = 'local';
+    //   //const csvGuardado = localStorage.getItem("csvData");
+    //   if (csvGuardado) {
+    //     segundos = 2;
+    //     if (desdeDonde === 'local') {
+    //         //mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargado", segundos, cargarCSV);
+    //       }
+    //   } else {
+    //     segundos = 2;
+    //     if (desdeDonde === 'local') {
+    //       if (btnAceptar.click) {
+    //         //mostrarMensajeConTimer(`ℹ️ No hay ninguna base de datos cargada.!<br>Por favor espere: ${segundos} segundos y seleccione un archivo para abrir.!`, "modalCargando", segundos, cargarCSV);
+    //       }
+    //     }
+    //   }
+    // } else {
+    //   console.log("Ejecutando desde un servidor (GitHub Pages)");
+    //   desdeDonde = 'web';
+    //   const datosGuardados = JSON.parse(localStorage.getItem('jsonData') || 'null');
+    //   if (datosGuardados) {
+    //     segundos = 2;
+    //     mostrarMensajeConTimer(`${Icons.cargando} Cargando base de datos.<br>Por favor espere: ${segundos} segundos`, "modalCargadoOnline", segundos, cargarDesdeLocalStorage);
+    //   } else {
+    //     segundos = 2;
+    //     modalCargarGitHub.style.display = "flex";
+    //   }
+    // };
   });
   // Cuando el usuario hace clic en "Aceptar"
+  // en modal cargar archivo
   btnAceptar.addEventListener("click", () => {
     modalCargar.style.display = "none"; // Cierra el modal
     fileInput.click(); // ✅ Abre el selector de archivos
-    //fileName2.addEventListener('change', e => {
-      //mostrarMensajeOK(`📦 Archivo CSV: ${nombre} cargado y guardado localmente`, "modalCargando");
-    //});
-    //mostrarMensajeOK(`📦 Archivo CSV: ${nombre} cargado y guardado localmente`, "modalCargando");
   });
-
-  // Si el usuario cancela
+  // Si el usuario cancela el modal cargar archivo
   btnCancelar.addEventListener("click", () => {
     modalCargar.style.display = "none"; // Cierra el modal sin hacer nada
   });
+  // Cuando el usuario hace clic en "Cargar CSV"
+  // en modal cargar archivo desde GitHub
+  btnAceptarCSV.addEventListener("click", () => {
+    modalCargarGitHub.style.display = "none"; // Cierra el modal
+    cargarCSVdesdeGitHub();
+  });
+  // Cuando el usuario hace clic en "Cargar JSON"
+  // en modal cargar archivo desde GitHub
+  btnAceptarJSON.addEventListener("click", () => {
+    modalCargarGitHub.style.display = "none"; // Cierra el modal
+    cargarJSON();
+  });
+  // Si el usuario cancela el modal cargar archivo desde GitHub
+  btnCancelarGitHub.addEventListener("click", () => {
+    modalCargarGitHub.style.display = "none"; // Cierra el modal sin hacer nada
+  });
+  // acción del botón cargar archivo local
+  document.querySelector('#btnCargar').addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  async function cargarListaPrecios() {
+    const esLocal = location.protocol === 'file:' || location.hostname === 'localhost';
+    const tieneCSV = localStorage.getItem('csvData');
+    const tieneJSON = localStorage.getItem('jsonData');
+
+    // 🧩 Verifica si hay datos guardados en LocalStorage
+    if (tieneCSV || tieneJSON) {
+      const tipo = tieneCSV ? 'CSV' : 'JSON';
+      const origen = esLocal ? 'localStorage o un archivo LOCAL' : 'localStorage o desde GitHub';
+
+      const opcion = confirm(
+        `Se detectaron datos guardados (${tipo}) en localStorage.\n\n` +
+        `¿Deseas cargarlos desde localStorage?\n\n` +
+        `Presiona "Aceptar" para cargar desde localStorage,\n` +
+        `"Cancelar" para cargar ${esLocal ? 'un archivo local' : 'desde GitHub'}.`
+      );
+
+      if (opcion) {
+        // 🔹 Cargar desde LocalStorage
+        try {
+          let datos;
+          if (tieneCSV) {
+            const texto = localStorage.getItem('csvData');
+            datos = procesarCSV(texto); // ✅ tu función ya existente
+            fileName2.textContent = 'Lista_Precios.csv';
+          } else if (tieneJSON) {
+            const data = JSON.parse(localStorage.getItem('jsonData'));
+            mostrarTabla(data); // ✅ tu función ya existente
+            cantidadOriginal = data.length;
+            fileName2.textContent = 'Lista_Precios.json';
+          }
+          console.log("✅ Datos cargados desde localStorage");
+        } catch (err) {
+          console.error("❌ Error al cargar datos locales:", err);
+          alert("Ocurrió un error al intentar cargar los datos guardados.");
+        }
+        return;
+      }
+    }
+
+    // 🧩 Si no hay datos guardados o el usuario eligió otra fuente
+    if (esLocal) {
+      // 🌐 Página ejecutándose en entorno local (archivo o localhost)
+      //alert("Selecciona un archivo CSV o JSON local para cargar la lista de precios.");
+      //fileInput.click(); // ✅ asume que ya tenés definido el input type="file" oculto
+      cargarCSV();
+      modalCargar.style.display = "flex";
+    } else {
+      // ☁️ Página ejecutándose en Internet (GitHub Pages u otro servidor)
+      modalCargarGitHub.style.display = "flex";
+      //const opcion = confirm("¿Deseas cargar la lista de precios desde GitHub?");
+      //if (opcion) {
+        // ✅ Llama a tu función para cargar desde GitHub
+        // Ejemplo: cargarCSVdesdeGitHub() o cargarJSONdesdeGitHub()
+        //cargarCSVdesdeGitHub(); 
+      //} else {
+        //alert("Selecciona un archivo CSV o JSON local para cargar la lista de precios.");
+        //fileInput.click(); // permitir cargar archivo manualmente también en web
+      //}
+    }
+  }
+
 </script>
 </body>
 </html>

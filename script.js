@@ -5,6 +5,9 @@ let contador = null;
 let usuarioActivoEnModal = false;
 let cantidadActual = null;
 let cantidadOriginal = null;
+let esCSV;
+let esJSON;
+let conDatos;
 const items = document.getElementById('contador');
 const inputSearch = document.getElementById('searchInput');
 const imgSearch = document.querySelector('.searching');
@@ -61,6 +64,7 @@ let precioCosto;
 let porcentajeCosto;
 const modal = document.getElementById('modal');
 const modalCargar = document.getElementById("modalCargar");
+const modalCargarGitHub = document.getElementById("modalCargarGithub");
 const modalEditar = document.getElementById("modalEditar");
 const modalEliminar = document.getElementById('modalEliminar');
 const containerEliminar = document.getElementById('containerEliminar');
@@ -290,8 +294,14 @@ function mostrarMensajeConTimer(texto, origen = '', segundos = 3, callback = nul
           mostrarMensajeOK(`${Icons.carpeta} Archivo CSV: ${nombre} cargado con exito.!`, origen);
           detenerCSVTemporizador();
         }
-        if (origen === 'modalCargandoOnline' || origen === 'modalCargadoOnline') {
+        //if (origen === 'modalCargandoOnline' || origen === 'modalCargadoOnline') {
+        if (origen === 'modalCargadoOnline') {
           mostrarMensajeOK(`${Icons.carpeta} Datos JSON: "jsonData" cargado con exito.!`, origen);
+          //modalCargarGitHub.style.display = "flex";
+          detenerCSVTemporizador();
+        }
+        if (origen === 'modalCargandoOnline') {
+          modalCargarGitHub.style.display = "flex";
           detenerCSVTemporizador();
         }
         if (typeof callback === "function") callback();
@@ -419,6 +429,14 @@ window.onload = function() {
     iniciarCSVTemporizador(segundos);
   }
 };
+//Comprobamos si la tabla contiene datos
+function tablaTieneDatos () {
+  if (!tbody || tbody.rows.length === 0) {
+    conDatos = 'no';
+  } else {
+    conDatos = 'si';
+  }
+}
 //Definimos la funcion que agrega los titulos a los componentes
 function Titulos(id, indirec = null) {
     segundosTooltip = 1500;
@@ -561,6 +579,7 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
 // }
 // 📝 Procesar CSV
 function procesarCSV(texto) {
+  esCSV = true;
   const lineas = texto.split(/\r?\n/).filter(l => l.trim() !== '');
   const separador = lineas[0].includes(';') ? ';' : ',';
   headers = lineas[0].split(separador).map(h => h.trim());
@@ -842,6 +861,7 @@ function guardarCSV2() {
 // ➕ Abrir modal agregar articulo
 function abrirModal() {
   origen = "modalAgregar";
+  segundosRestantes = 10;
   if (!precio1.value && !nuevoNombre.value) {
     btnAgregarArticulo.disabled = true;
     btnLimpiar.disabled = true;
@@ -851,16 +871,52 @@ function abrirModal() {
   }
   //document.getElementById('modal')
   modal.style.display = 'flex';
+  contadorCerrar.style.display = "none"; // oculto al abrir
   //document.getElementById('nuevoNombre')
   nuevoNombre.focus();
-  setTimeout(() => {
-    if (modal.style.display === 'flex') {
-      if (!nuevoNombre.value || !precio1.value) {
-        cerrarModal();
-        mostrarMensajeOK(`${Icons.informacion} No se ingresaron datos.!<br>⚙️Nombre Producto o ${Icons.money2} Precio Venta vacio.!<br>El formulario: "${modal.ariaLabel}" se cerró automáticamente tras 10 segundos.`, origen);
+  mensaje = `${Icons.advertencia} El formulario: "${modal.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!\nIngrese un valor sobre el campo nombre, o haga click en cualquier lugar del formulario para Cancelar el cierre.!`;
+  clearInterval(intervalContador);
+  usuarioActivoEnModal = false;
+  clearTimeout(timeoutCerrarModal);
+
+  // Detectar actividad del usuario dentro del modal
+  const eventosActividad = ["keydown", "mousedown", "focusin", "input"];
+  eventosActividad.forEach(evento => {
+    modal.addEventListener(evento, mantenerModalActivo);
+  });
+  nuevoNombre.addEventListener('input', cancelarContador);
+  modal.querySelectorAll('div').forEach(div => {
+    div.addEventListener('click', cancelarContador);
+  });
+  // setTimeout(() => {
+  //   if (modal.style.display === 'flex') {
+  //     if (!nuevoNombre.value || !precio1.value) {
+  //       cerrarModal();
+  //       mostrarMensajeOK(`${Icons.informacion} No se ingresaron datos.!<br>⚙️Nombre Producto o ${Icons.money2} Precio Venta vacio.!<br>El formulario: "${modal.ariaLabel}" se cerró automáticamente tras 10 segundos.`, origen);
+  //     }
+  //   }
+  // }, 15000);
+  // Configurar el cierre automático
+  timeoutCerrarModal = setTimeout(() => {
+    if (modal.style.display === "flex" && !usuarioActivoEnModal) {
+      if (!nuevoNombre.value) {
+        contadorCerrar.style.display = "block";
+        contadorCerrar.textContent = mensaje;//`${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!`;
+        // 🔹 Contador regresivo cada segundo
+        intervalContador = setInterval(() => {
+          segundosRestantes--;
+          mensaje = `${Icons.advertencia} El formulario: "${modal.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!\nIngrese un valor sobre el campo de busqueda, o haga click en cualquier lugar del formulario para Cancelar el cierre.!`;
+          if (segundosRestantes > 0) {
+            contadorCerrar.textContent = mensaje;//`${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!`;
+          } else {
+            clearInterval(intervalContador);
+            cerrarModal();
+            mostrarMensajeOK(`${Icons.informacion} El formulario: "${modal.ariaLabel}"<br>Se cerró automáticamente tras 10 segundos por inactividad.`, origen);
+          }
+        }, 1000)
       }
     }
-  }, 15000);
+  }, 10000);
 }
 // ❌ Cerrar modal agregar articulo
 function cerrarModal() {
@@ -1011,7 +1067,7 @@ nuevoNombre.addEventListener('input', function() {
   }
   setTimeout(() => {
     precio1.focus();
-  }, 2500);
+  }, 15000);
 })
 // Pasar el foco al input PRECIO2 luego de 2.5 segundos.
 precio1.addEventListener('input', function() {
@@ -1023,7 +1079,7 @@ precio1.addEventListener('input', function() {
   }
   setTimeout(() => {
     precio2.focus();
-  }, 2500);
+  }, 10000);
 })
 // Pasar el foco al botón Agregar Artículo luego de 2.5 segundos si el usuario no ingresa datos.
 precio2.addEventListener('focusin', function() {
@@ -1031,13 +1087,13 @@ precio2.addEventListener('focusin', function() {
     if (!precio2.value) {
       btnAgregarArticulo.focus();
     }
-  }, 2500);
+  }, 5000);
 })
 // Pasar el foco al boton Agregar Articulo luego de 2.5 segundos.
 precio2.addEventListener('input', function() {
   setTimeout(() => {
     btnAgregarArticulo.focus();
-  }, 2500);
+  }, 10000);
 })
 // 💲 Formatear al perder foco (onblur) en el modal
 precio1.addEventListener('blur', function() {
@@ -1209,9 +1265,12 @@ function mostrarAnteriorCoincidencia2() {
   if (coincidencias.length === 0) return;
   indiceActual = (indiceActual - 1) % coincidencias.length; // Avanza circularmente
   nuevoIndice = nuevoIndice - 1;
-  if (nuevoIndice >= 1) {
+  if (nuevoIndice === 1 ) {
     btnAnteriorEditar.disabled = true;
     btnAnteriorEditar.style.cursor = 'not-allowed';
+  } else {
+    btnAnteriorEditar.disabled = false;
+    btnAnteriorEditar.style.cursor = 'pointer';
   }
   actualizarVistaCoincidencia(modalEditar);
 }
@@ -1279,7 +1338,10 @@ function actualizarVistaCoincidencia(modalActivo) {
           btnSiguiente.disabled = false;
           btnSiguiente.style.cursor = 'pointer';
         }
-
+        if (nuevoIndice > 1) {
+          btnAnterior.disabled = false;
+          btnAnterior.style.cursor = 'pointer';
+        }
       } else if (esEditar) {
         btnGuardarEditar.disabled = false;
         btnGuardarEditar.style.cursor = 'pointer';
@@ -1291,6 +1353,10 @@ function actualizarVistaCoincidencia(modalActivo) {
         } else if (numeroEncontrado < numeroContador) {
           btnSiguienteEditar.disabled = false;
           btnSiguienteEditar.style.cursor = 'pointer';
+        }
+        if (nuevoIndice > 1) {
+          btnAnteriorEditar.disabled = false;
+          btnAnteriorEditar.style.cursor = 'pointer';
         }
       }
     } else {
@@ -1514,60 +1580,80 @@ function detenerCSVTemporizador() {
 // 🧩 Función principal
 function comprobarCambiosDatos() {
   try {
-    // Detectar si estamos usando JSON o CSV
-    const usandoJSON = window.location.href.startsWith('https://') || window.location.href.startsWith('http://');
-    const storageKey = usandoJSON ? 'jsonData' : 'csvData';
-    const guardado = localStorage.getItem(storageKey);
+    tablaTieneDatos();
+    if (conDatos === 'si') {
+      console.log('tiene datos');
+    // } else if (conDatos === 'no') {
+    //   console.log('no tiene datos');
+    // }
+      // Detectar si estamos usando JSON o CSV
+      const usandoJSON = window.location.href.startsWith('https://') || window.location.href.startsWith('http://');
+      const storageKey = usandoJSON ? 'jsonData' : 'csvData';
+      const guardado = localStorage.getItem(storageKey);
 
-    if (!guardado) return; // No hay base previa, salir sin tocar nada
+      if (!guardado) return; // No hay base previa, salir sin tocar nada
 
-    let datosGuardados;
-    let datosActuales = datos; // Asumimos que "datos" tiene la tabla actual en memoria
+      let datosGuardados;
+      let datosActuales = datos; // Asumimos que "datos" tiene la tabla actual en memoria
 
-    // 🔄 Parsear según el modo
-    if (usandoJSON) {
-      datosGuardados = JSON.parse(guardado);
-    } else {
-      // Si es CSV, convertimos la cadena guardada a texto para comparar
-      const separador = ';';
-      const columnas = headers;
-      const lineas = [columnas.join(separador)];
-
-      datosActuales.forEach(obj => {
-        const fila = columnas.map(c => (obj[c] || '').toString().replace(/"/g, '')).join(separador);
-        lineas.push(fila);
-      });
-      datosGuardados = guardado.trim();
-      datosActuales = lineas.join('\n').trim();
-    }
-
-    // ⚖️ Comparar
-    let hayCambios = false;
-
-    if (usandoJSON) {
-      // Comparar objetos JSON
-      hayCambios = JSON.stringify(datosGuardados) !== JSON.stringify(datosActuales);
-    } else {
-      // Comparar texto CSV
-      hayCambios = datosGuardados !== datosActuales;
-    }
-
-    // 💾 Guardar si hubo cambios
-    if (hayCambios) {
+      // 🔄 Parsear según el modo
       if (usandoJSON) {
-        localStorage.setItem(storageKey, JSON.stringify(datosActuales));
+        datosGuardados = JSON.parse(guardado);
       } else {
-        localStorage.setItem(storageKey, datosActuales);
+        // Si es CSV, convertimos la cadena guardada a texto para comparar
+        const separador = ';';
+        const columnas = headers;
+        const lineas = [columnas.join(separador)];
+
+        datosActuales.forEach(obj => {
+          const fila = columnas.map(c => (obj[c] || '').toString().replace(/"/g, '')).join(separador);
+          lineas.push(fila);
+        });
+        datosGuardados = guardado.trim();
+        datosActuales = lineas.join('\n').trim();
       }
 
-      mostrarMensajeOK(
-        `${Icons.advertencia} Se detectaron cambios en los datos de LocalStorage.<br>${Icons.guardar} Cambios guardados automáticamente`,
-        "compruebaCambios"
-      );
+      // ⚖️ Comparar
+      let hayCambios = false;
 
+      if (usandoJSON) {
+        // Comparar objetos JSON
+        hayCambios = JSON.stringify(datosGuardados) !== JSON.stringify(datosActuales);
+      } else {
+        // Comparar texto CSV
+        hayCambios = datosGuardados !== datosActuales;
+        // if (tablaTieneDatos === 'tiene') {
+        //   hayCambios = datosGuardados !== datosActuales;
+        // } else {
+        //   console.log('acaaaaa 1612');
+        // }
+      }
+
+      // 💾 Guardar si hubo cambios
+      if (hayCambios) {
+        if (usandoJSON) {
+          localStorage.setItem(storageKey, JSON.stringify(datosActuales));
+        } else {
+          localStorage.setItem(storageKey, datosActuales);
+          // if (tablaTieneDatos === 'tiene') {
+          //   localStorage.setItem(storageKey, datosActuales);
+          // } else {
+          //   localStorage.setItem(storageKey, datosGuardados);
+          // }
+        }
+
+        mostrarMensajeOK(
+          `${Icons.advertencia} Se detectaron cambios en los datos de LocalStorage.<br>${Icons.guardar} Cambios guardados automáticamente`,
+          "compruebaCambios"
+        );
+        console.log('acaaaaa 1626');
+
+        detenerCSVTemporizador();
+      }
+    } else if (conDatos === 'no') {
+      console.log('no tiene datos');
       detenerCSVTemporizador();
     }
-
   } catch (err) {
     console.error("❌ Error al comprobar cambios:", err);
   }
@@ -2155,7 +2241,7 @@ setTimeout(() => {
   let preciosActualesDiferentes;
   let preciosDiferentes;
   let fechasDiferentes;
-  if (esLocal()) {
+  if (esLocal() || !esLocal()) {
     const lineas = csvDataOriginal.split(/\r?\n/).filter(l => l.trim() !== '');
     cantidadOriginal = lineas.length - 1;
     const cambios = compararFechasYPreciosCSV(csvDataOriginal, csvData);
@@ -2163,13 +2249,6 @@ setTimeout(() => {
     fechasActualesDiferentes = cambios.map(c => c.fechaActual);
     preciosOriginalesDiferentes = cambios.map(c => c.precioOriginal);
     preciosActualesDiferentes = cambios.map(c => c.precioActual);
-    //preciosDiferentes = preciosOriginalesDiferentes.length - preciosActualesDiferentes.length;
-    //console.log(preciosDiferentes);
-    //console.log(cambios);
-    //console.log(fechasOriginalesDiferentes.length);
-    //console.log(fechasActualesDiferentes.length);
-    //console.log(preciosOriginalesDiferentes.length);
-    //console.log(preciosActualesDiferentes.length);
   } else {
     const datosActuales = localStorage.getItem("jsonData");
     const datosOriginales = localStorage.getItem("jsonOriginal");
@@ -2179,19 +2258,11 @@ setTimeout(() => {
     fechasActualesDiferentes = cambios.map(c => c.fechaActual);
     preciosOriginalesDiferentes = cambios.map(c => c.precioOriginal);
     preciosActualesDiferentes = cambios.map(c => c.precioActual);
-    //console.log(cambios);
-    //console.log(fechasOriginalesDiferentes.length);
-    //console.log(fechasActualesDiferentes.length);
-    //console.log(preciosOriginalesDiferentes.length);
-    //console.log(preciosActualesDiferentes.length);
   }
   preciosDiferentes = preciosActualesDiferentes.length;
   fechasDiferentes = fechasActualesDiferentes.length;
   if (preciosActualesDiferentes.length > 0 || fechasActualesDiferentes.length > 0 || cantidadActual > cantidadOriginal) {
-  //const originalesDiferentes = cambios.map(c => c.original);
-  //const actualesDiferentes = cambios.map(c => c.nueva);
-    //if (originalesDiferentes.length > 0 || cantidadActual !== cantidadOriginal) {
-      if (esLocal()) {
+      if (esLocal() || !esLocal()) {
         mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en: ${archivoOriginal} procedente del archivo original: ${Icons.csv}${nombre}<br>Son más antiguos que los datos de: ${csvDatos} almacenados en LocalStorage`, 'datosOriginales');
         localStorage.setItem(archivoOriginal, csvData);
       } else {
@@ -2199,9 +2270,6 @@ setTimeout(() => {
         mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en LocalStorage procedentes del archivo Original "Lista_Precios.json"<br>Son más antiguos que los datos almacenados en LocalStorage obtenidos de la tabla de artículos`, 'datosOriginales');
         localStorage.setItem('jsonOriginal', datosActuales);
       }
-    //} else {
-      //console.log('son iguales');
-    //}
   }
 }, 5000);
 // 🔹 Función para asignar un tooltip único a un elemento
@@ -2389,3 +2457,18 @@ btnGuardarCambios.addEventListener("click", () => {
   // Cerrar modal
   modalEditar.style.display = "none";
 });
+
+// Funcion para hacer una 3era copia de seguridad de la lista de precios
+// dicha lista de precios va a ser almacenada
+// tanto en formato CSV como JSON en LocalStorage bajo el nombre
+// CSV = "csvData_Backup"
+// JSON = "jsonData_Backup"
+function dataBackup(datosListas) {
+  if (esCSV) {
+    localStorage.setItem("csvData_Backup", datosListas);
+    //localStorage.setItem("csvData_Backup", datos);
+  }
+  if (esJSON) {
+    localStorage.setItem("jsonData_Backup", datosListas);
+  }
+}

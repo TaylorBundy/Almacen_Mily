@@ -27,6 +27,35 @@ async function cargarJSON() {
     }
 }
 
+async function cargarJSON2(nombreFile) {
+  try {
+      const response = await fetch(nombreFile); // Asegurate que esté en la misma carpeta
+      if (!response.ok) throw new Error('No se pudo cargar el JSON');
+      const json = await response.json();
+
+      // Adaptamos los datos al formato esperado por mostrarTabla
+      datos = json.map(item => ({
+      CODIGO: item.CODIGO || item.codigo || '0',  // soporta JSON con mayúscula o minúscula
+      ID: item.ID || item.id || '',
+      PRODUCTO: item.PRODUCTO || item.producto || '',
+      PRECIO: item.PRECIO || item.precio || '',
+      PRECIO2: item.PRECIO2 || item.precio2 || '',
+      ACTUALIZADO: item.ACTUALIZADO || item.actualizado || '0'
+      }));
+
+      // Llamamos a mostrarTabla con los datos adaptados
+      mostrarTabla(datos);
+      localStorage.setItem('jsonData', JSON.stringify(datos));
+      localStorage.setItem('jsonOriginal', JSON.stringify(datos));
+      esJSON = true;
+      cantidadOriginal = datos.length;
+      return datos; // opcional, si necesitas usar los datos luego
+  } catch (err) {
+      console.error(err);
+      return [];
+  }
+}
+
 function cargarDesdeLocalStorage() {
     const datosGuardados = localStorage.getItem("jsonData");
     if (datosGuardados) {
