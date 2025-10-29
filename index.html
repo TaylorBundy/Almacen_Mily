@@ -137,11 +137,11 @@
       </div>
       <div class="campoPrecio">
         <strong>Precio Venta: <span id="precioEncontrado">-</span> </strong>
-        <input type="text" id="nuevoPrecio1Editar" onfocus="formatearCampo(this)" placeholder="Ej: 3500.00">
+        <input type="text" id="nuevoPrecio1Editar" maxlength="6" onfocus="formatearCampo(this)" placeholder="Ej: 3500.00">
       </div>
       <div class="campoPrecio">
         <strong>Precio Deudor: <span id="precioEncontrado2">-</span> </strong>
-        <input type="text" id="nuevoPrecio2Editar" onfocus="formatearCampo(this)" placeholder="Ej: 3200.00 (opcional)">
+        <input type="text" id="nuevoPrecio2Editar" maxlength="6" onfocus="formatearCampo(this)" placeholder="Ej: 3200.00 (opcional)">
       </div>
     </div>
 
@@ -485,51 +485,57 @@
     const tieneCSV = localStorage.getItem('csvData');
     const tieneJSON = localStorage.getItem('jsonData');
 
-    // 🧩 Verifica si hay datos guardados en LocalStorage
-    if (tieneCSV || tieneJSON) {
-      const tipo = tieneCSV ? 'CSV' : 'JSON';
-      const origen = esLocal ? 'localStorage o un archivo LOCAL' : 'localStorage o desde GitHub';
+    if (!plataforma.includes('Android')) {
+      // 🧩 Verifica si hay datos guardados en LocalStorage
+      if (tieneCSV || tieneJSON) {
+        const tipo = tieneCSV ? 'CSV' : 'JSON';
+        const origen = esLocal ? 'localStorage o un archivo LOCAL' : 'localStorage o desde GitHub';
 
-      const opcion = confirm(
-        `Se detectaron datos guardados (${tipo}) en localStorage.\n\n` +
-        `¿Deseas cargarlos desde localStorage?\n\n` +
-        `Presiona "Aceptar" para cargar desde localStorage,\n` +
-        `"Cancelar" para cargar ${esLocal ? 'un archivo local' : 'desde GitHub'}.`
-      );
+        const opcion = confirm(
+          `Se detectaron datos guardados (${tipo}) en localStorage.\n\n` +
+          `¿Deseas cargarlos desde localStorage?\n\n` +
+          `Presiona "Aceptar" para cargar desde localStorage,\n` +
+          `"Cancelar" para cargar ${esLocal ? 'un archivo local' : 'desde GitHub'}.`
+        );
 
-      if (opcion) {
-        // 🔹 Cargar desde LocalStorage
-        try {
-          let datos;
-          if (tieneCSV) {
-            const texto = localStorage.getItem('csvData');
-            datos = procesarCSV(texto); // ✅ tu función ya existente
-            fileName2.textContent = 'Lista_Precios.csv';
-          } else if (tieneJSON) {
-            const data = JSON.parse(localStorage.getItem('jsonData'));
-            mostrarTabla(data); // ✅ tu función ya existente
-            cantidadOriginal = data.length;
-            fileName2.textContent = 'Lista_Precios.json';
+        if (opcion) {
+          // 🔹 Cargar desde LocalStorage
+          try {
+            let datos;
+            if (tieneCSV) {
+              const texto = localStorage.getItem('csvData');
+              datos = procesarCSV(texto); // ✅ tu función ya existente
+              fileName2.textContent = 'Lista_Precios.csv';
+            } else if (tieneJSON) {
+              const data = JSON.parse(localStorage.getItem('jsonData'));
+              mostrarTabla(data); // ✅ tu función ya existente
+              cantidadOriginal = data.length;
+              fileName2.textContent = 'Lista_Precios.json';
+            }
+            console.log("✅ Datos cargados desde localStorage");
+          } catch (err) {
+            console.error("❌ Error al cargar datos locales:", err);
+            alert("Ocurrió un error al intentar cargar los datos guardados.");
           }
-          console.log("✅ Datos cargados desde localStorage");
-        } catch (err) {
-          console.error("❌ Error al cargar datos locales:", err);
-          alert("Ocurrió un error al intentar cargar los datos guardados.");
+          return;
         }
-        return;
       }
-    }
-
-    // 🧩 Si no hay datos guardados o el usuario eligió otra fuente
-    if (esLocal) {
-      // 🌐 Página ejecutándose en entorno local (archivo o localhost)
-      //alert("Selecciona un archivo CSV o JSON local para cargar la lista de precios.");
-      //fileInput.click(); // ✅ asume que ya tenés definido el input type="file" oculto
       cargarCSV();
       modalCargar.style.display = "flex";
     } else {
-      // ☁️ Página ejecutándose en Internet (GitHub Pages u otro servidor)
+      //cargarCSVdesdeGitHub();
       modalCargarGitHub.style.display = "flex";
+    }
+
+    // 🧩 Si no hay datos guardados o el usuario eligió otra fuente
+    //if (esLocal) {
+      // 🌐 Página ejecutándose en entorno local (archivo o localhost)
+      //alert("Selecciona un archivo CSV o JSON local para cargar la lista de precios.");
+      //fileInput.click(); // ✅ asume que ya tenés definido el input type="file" oculto
+      
+    //} else {
+      // ☁️ Página ejecutándose en Internet (GitHub Pages u otro servidor)
+      //modalCargarGitHub.style.display = "flex";
       //const opcion = confirm("¿Deseas cargar la lista de precios desde GitHub?");
       //if (opcion) {
         // ✅ Llama a tu función para cargar desde GitHub
@@ -539,7 +545,7 @@
         //alert("Selecciona un archivo CSV o JSON local para cargar la lista de precios.");
         //fileInput.click(); // permitir cargar archivo manualmente también en web
       //}
-    }
+    //}
   }
 
 </script>

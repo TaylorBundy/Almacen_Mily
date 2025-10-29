@@ -9,20 +9,29 @@ async function cargarCSVdesdeGitHub() {
       const texto = await response.text();
   
       // 🔹 Parsear CSV a objetos (simple, separador por coma o punto y coma)
+      // const lineas = texto.split(/\r?\n/).filter(l => l.trim() !== '');
+      // const encabezados = lineas[0].split(/;|,/).map(h => h.trim());
+      // const datos = lineas.slice(1).map(linea => {
+      //   const valores = linea.split(/;|,/);
+      //   const item = {};
+      //   encabezados.forEach((col, i) => item[col] = valores[i] || '');
+      //   return {
+      //     CODIGO: item.CODIGO || item.codigo || '0',
+      //     ID: item.ID || item.id || '',
+      //     PRODUCTO: item.PRODUCTO || item.producto || '',
+      //     PRECIO: item.PRECIO || item.precio || '',
+      //     PRECIO2: item.PRECIO2 || item.precio2 || '',
+      //     ACTUALIZADO: item.ACTUALIZADO || item.actualizado || '0'
+      //   };
+      // });
       const lineas = texto.split(/\r?\n/).filter(l => l.trim() !== '');
-      const encabezados = lineas[0].split(/;|,/).map(h => h.trim());
-      const datos = lineas.slice(1).map(linea => {
-        const valores = linea.split(/;|,/);
-        const item = {};
-        encabezados.forEach((col, i) => item[col] = valores[i] || '');
-        return {
-          CODIGO: item.CODIGO || item.codigo || '0',
-          ID: item.ID || item.id || '',
-          PRODUCTO: item.PRODUCTO || item.producto || '',
-          PRECIO: item.PRECIO || item.precio || '',
-          PRECIO2: item.PRECIO2 || item.precio2 || '',
-          ACTUALIZADO: item.ACTUALIZADO || item.actualizado || '0'
-        };
+      const separador = lineas[0].includes(';') ? ';' : ',';
+      headers = lineas[0].split(separador).map(h => h.trim());
+      datos = lineas.slice(1).map(linea => {
+        const valores = linea.split(separador);
+        let obj = {};
+        headers.forEach((h, i) => obj[h] = valores[i]?.trim() || '');
+        return obj;
       });
   
       // 🔹 Mostrar en tabla y guardar localmente

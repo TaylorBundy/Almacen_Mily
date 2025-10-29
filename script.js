@@ -30,6 +30,7 @@ let porcentaje = null;
 const chkPorcentaje = document.getElementById('porcentajeChk');
 const chkPorcentajeCosto = document.getElementById('porcentajeChkCosto');
 const inputPorcentajeCosto = document.getElementById('porcentajeCostoInput');
+const inputPorcentaje = document.getElementById('porcentajeInput');
 const fileName = document.querySelector('#fileInput');
 const archivo = 'Lista_Precios.csv';
 let nombre = null;
@@ -60,6 +61,7 @@ let desdeDonde = null;
 let numeroContador;
 let numeroEncontrado;
 let timeoutCerrarModal = null;
+let precioDeudor;
 let precioCosto;
 let porcentajeCosto;
 const modal = document.getElementById('modal');
@@ -315,16 +317,8 @@ btnLimpiar.addEventListener('click', () => {
 });
 
 // 🔹 Detectar cambios en el input de porcentaje DEUDORES con retardo de 1 segundo
-document.getElementById('porcentajeInput').addEventListener('input', function() {
-  setTimeout(() => {
-    if (this.value === '') {
-      porcentaje = 20;
-    } else {
-      porcentaje = this.value;
-    }
-    recalcularPrecios();
-  }, 1000);
-})
+//document.getElementById('porcentajeInput').addEventListener('input', function() {
+
 // 🔹 Detectar cambios en el input de porcentaje COSTO con retardo de 1 segundo
 // si estamos en windows.
 // si estamos en android usamos change ya que el input no detecta bien los cambios
@@ -336,6 +330,17 @@ if (!plataforma.includes('Android')) {
         porcentajeCosto = 0;
       } else {
         porcentajeCosto = this.value;
+      }
+      //recalcularPrecios();
+      mostrarTabla(datos);
+    }, 1000);
+  })
+  inputPorcentaje.addEventListener('input', function() {
+    setTimeout(() => {
+      if (this.value === '') {
+        porcentaje = 0;
+      } else {
+        porcentaje = this.value;
       }
       //recalcularPrecios();
       mostrarTabla(datos);
@@ -353,6 +358,17 @@ if (!plataforma.includes('Android')) {
       mostrarTabla(datos);
     //}, 1000);
   })
+  inputPorcentaje.addEventListener('change', function() {
+    //setTimeout(() => {
+      if (this.value === '') {
+        porcentaje = 0;
+      } else {
+        porcentaje = this.value;
+      }
+      //recalcularPrecios();
+      mostrarTabla(datos);
+    //}, 1000);
+  })
 }
 // mostrar precio COSTO cuando checkeamos el chekbox
 // porcentajeCosto establecido por defecto en %60
@@ -361,12 +377,14 @@ chkPorcentajeCosto.addEventListener("change", () => {
     const valorInput = parseFloat(inputPorcentajeCosto.value);
     //porcentajeCosto = document.getElementById('porcentajeCostoInput')?.value || 60;
     porcentajeCosto = !isNaN(valorInput) ? valorInput : 60;
+    
   } else {
     porcentajeCosto = 0;
     if (inputPorcentajeCosto.value !== '') {
       inputPorcentajeCosto.value = '';
     }
   }
+  inputSearch.value = '';
   mostrarTabla(datos);
 });
 // 🔹 Detectar cambios en el input de porcentaje
@@ -405,7 +423,7 @@ window.onload = function() {
       logo.setAttribute('src', 'favicon.ico');
     });
     PorcentajeCosto.style.display = 'table-row';
-    porcentaje = document.getElementById('porcentajeCostoInput')?.value || 60;
+    //porcentaje = document.getElementById('porcentajeCostoInput')?.value || 60;
   }
   if (contador == '0') {
     //inputSearch.disabled = true;
@@ -418,7 +436,7 @@ window.onload = function() {
     //btnGuardar.style.cursor = 'not-allowed';
   }
   
-  porcentaje = document.getElementById('porcentajeInput')?.value || 20;
+  //porcentaje = document.getElementById('porcentajeInput')?.value || 20;
   // Comprueba si existe csv en localstorage
   comprobarCSV();
   // Activa temporizador para comprobar cambios cada 2 minutos
@@ -600,16 +618,27 @@ function mostrarTabla(lista) {
     const indice = r._index ?? idx; // usa el original si existe
     const fila = document.createElement('tr');
     fila.dataset.index = indice + 1; // ← almacena el índice original
+    // Al precio venta, le retiramos el formato moneda y lo pasamos a string
+    const precioVenta = desformatearPrecio(r.PRECIO || '0');
     // si la plataforma no es android muestra la tabla en formato original
     // sin mostrar el precio costo
     if (!plataforma.includes('Android')) {
+      // al precio venta le aplicamos un 30% , correspondiente al margen
+      // de ganancias utilizado
+      const nuevo2 = 1 + porcentaje / 100;
+      // al precio de costo con el 30% restado lo volvemos a formatear a moneda para ser mostrado en la tabla
+      if (chkPorcentaje.checked || inputPorcentaje.value !== '') {
+        precioDeudor = formatearPrecio(precioVenta * nuevo2);
+      } else {
+        precioDeudor = r.PRECIO2;
+      }
       fila.innerHTML = `
         <td data-label="indice" class="indice">${idx + 1}</td>
         <td data-label="Código" class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
         <td data-label="Id" class="id">${r.ID || ''}</td>
         <td data-label="Producto" class="producto" id="producto${idx + 1}" style="background:#ffe8d3;" onmouseover="Titulos(this.id)">${r.PRODUCTO || ''}</td>
-        <td data-label="Precio Venta" class="precio1N" id="precio-${idx + 1}" style="background:#fff8d3;" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${r.PRECIO || ''}</td>
-        <td data-label="Precio Deudor" class="precio2N" id="precio2-${idx + 1}" style="background-color:#fff8d3;" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
+        <td data-label="Precio Venta" class="precio1N" id="precio-${idx + 1}" style="background:#fff8d3;" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${r.PRECIO || ''}</td>
+        <td data-label="Precio Deudor" class="precio2N" id="precio2-${idx + 1}" style="background-color:#fff8d3;" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${precioDeudor || ''}</td>
         <td data-label="Fecha" class="fecha">${r.ACTUALIZADO || ''}</td>
       `;
     // si la plataforma es adroid muestra la tabla en formato tarjeta
@@ -617,23 +646,28 @@ function mostrarTabla(lista) {
     // a su vez mostramos en la tabla el precio costo de cada articulo teniendo en cuenta el porcentaje
     // de ganancia aplicado por el propietario
     } else {
-      // Al precio venta, le retiramos el formato moneda y lo pasamos a string
-      const precioVenta = desformatearPrecio(r.PRECIO || '0');
+      // al precio venta le aplicamos un 30% , correspondiente al margen
+      // de ganancias utilizado
+      const nuevo2 = 1 + porcentaje / 100;
+      // al precio de costo con el 30% restado lo volvemos a formatear a moneda para ser mostrado en la tabla
+      if (chkPorcentaje.checked || inputPorcentaje.value !== '') {
+        precioDeudor = formatearPrecio(precioVenta * nuevo2);
+      } else {
+        precioDeudor = r.PRECIO2;
+      }
       // al precio venta le aplicamos un 60% de descuento, correspondiente al margen
       // de ganancias utilizado
-      //const nuevo = precioVenta * 0.6;
       const nuevo = precioVenta * porcentajeCosto / 100;
       // al precio de costo con el 60% restado lo volvemos a formatear a moneda para ser mostrado en la tabla
       precioCosto = formatearPrecio(nuevo);
-      //console.log(precioCosto);
       fila.innerHTML = `
         <td data-label="indice" class="indice">${idx + 1}</td>
         <td data-label="Código" class="codigoN" id="codigo${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'CODIGO', this.innerText)" onblur="if(this.innerText.trim() === '') this.innerText = '0'" onmouseover="Titulos(this.id)">${r.CODIGO || ''}</td>
         <td data-label="Id" class="id">${r.ID || ''}</td>
         <td data-label="Producto" class="producto" id="producto${idx + 1}" onmouseover="Titulos(this.id)">${r.PRODUCTO || ''}</td>
-        <td data-label="Precio Costo" class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${precioCosto || ''}</td>
+        <td data-label="Precio Costo" class="precio1N" id="precioC-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${precioCosto || ''}</td>
         <td data-label="Precio Venta" class="precio1N" id="precio-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" onclick="btnAbrirModalEditar.click();" oninput="editar(${idx}, 'PRECIO', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO')" onmouseover="Titulos(this.id, ${indice})">${r.PRECIO || ''}</td>
-        <td data-label="Precio Deudor" class="precio2N" id="precio2-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${r.PRECIO2 || ''}</td>
+        <td data-label="Precio Deudor" class="precio2N" id="precio2-${idx + 1}" contenteditable="false" onfocus="formatearCampo(this)" oninput="editar(${idx}, 'PRECIO2', this.innerText)" onblur="aplicarFormato(this, ${idx}, 'PRECIO2')" onmouseover="Titulos(this.id)">${precioDeudor || ''}</td>
         <td data-label="Fecha" class="fecha">${r.ACTUALIZADO || ''}</td>
       `;
     }
@@ -666,12 +700,22 @@ function mostrarTabla(lista) {
 // mostrar precio deudores cuando checkeamos el chekbox
 chkPorcentaje.addEventListener("change", () => {
   if (chkPorcentaje.checked) {
-    porcentaje = document.getElementById('porcentajeInput')?.value || 30;
-    recalcularPrecios();
+    // porcentaje = document.getElementById('porcentajeInput')?.value || 30;
+    // recalcularPrecios();
+    const valorInput = parseFloat(inputPorcentaje.value);
+    //porcentajeCosto = document.getElementById('porcentajeCostoInput')?.value || 60;
+    porcentaje = !isNaN(valorInput) ? valorInput : 30;
+    
   } else {
+    porcentaje = 0;
+    if (inputPorcentaje.value !== '') {
+      inputPorcentaje.value = '';
+    }
     //porcentaje = null;
-    mostrarTabla(datos);
+    //mostrarTabla(datos);
   }
+  inputSearch.value = '';
+  mostrarTabla(datos);
   //recalcularPrecios();
 });
 // ✏️ Editar
@@ -757,7 +801,9 @@ function guardarCSV(tipo = "csv") {
   if (esLocal()) {
     tipo = 'csv';
   } else {
-    tipo = 'json';
+    //tipo = 'json';
+    // por el momento siempre vamos a guardar en CSV
+    tipo = 'csv';
   }
   origen = "modalGuardar";
   if (!datos.length) return;
@@ -925,10 +971,16 @@ function cerrarModal() {
   limpiarInputs('#modal'); // Limpia todos los inputs dentro del formulario con id="miFormulario"
 }
 // Funcion abrir modal editar articulo
-function abrirModalEditar() {
+function abrirModalEditar(articulo = null) {
   ocultarTooltip(0);
   document.getElementById("modalEditar").style.display = "flex";
   buscarEditar.focus();
+  setTimeout(() => {
+    buscarEditar.value = articulo;
+    if (articulo !== null) {
+      buscarArticuloEditar();
+    }
+  }, 500);
   if (buscarEditar.value === '') {
     precio1Editar.disabled = true;
     precio2Editar.disabled = true;
@@ -1151,16 +1203,30 @@ function agregarArticulo() {
   if (!precio1) precio1 = '0';
   if (!precio2) precio2 = '0';
   // Formatear precios
-  if (!esPrecioValido(precio1)) {
-    precio1 = formatearPrecio(precio1);
-  } else {
-    precio1 = precio1;
+  if (!esPrecioValido(precio1)) precio1 = formatearPrecio(precio1);
+  if (!esPrecioValido(precio2)) precio2 = formatearPrecio(precio2);
+
+  // if (!esPrecioValido(precio1)) {
+  //   precio1 = formatearPrecio(precio1);
+  // } else {
+  //   precio1 = precio1;
+  // }
+  // if (!esPrecioValido(precio2)) {
+  //   precio2 = formatearPrecio(precio2);
+  // } else {
+  //   precio2 = precio2;
+  // }
+
+  // ⚠️ Comprobar si el artículo ya existe (nombre exacto, sin distinción de mayúsculas/minúsculas)
+  const nombreMayus = nombre.trim().toUpperCase();
+  const existe = datos.some(d => d.PRODUCTO.trim().toUpperCase() === nombreMayus);
+
+  if (existe) {
+    alert(`⚠️ El artículo "${nombre}" ya existe en la base de datos.`);
+    document.getElementById('nuevoNombre').focus();
+    return;
   }
-  if (!esPrecioValido(precio2)) {
-    precio2 = formatearPrecio(precio2);
-  } else {
-    precio2 = precio2;
-  }
+
   // Calcular nuevo ID
   let maxID = 0;
   datos.forEach(d => {
@@ -1172,11 +1238,19 @@ function agregarArticulo() {
   const nuevoArticulo = {
     CODIGO: codigo,
     ID: nuevoID,
-    PRODUCTO: nombre.toUpperCase(),
+    PRODUCTO: nombreMayus,
     PRECIO: precio1,
     PRECIO2: precio2,
     ACTUALIZADO: new Date().toLocaleDateString()
   };
+  // const nuevoArticulo = {
+  //   CODIGO: codigo,
+  //   ID: nuevoID,
+  //   PRODUCTO: nombre.toUpperCase(),
+  //   PRECIO: precio1,
+  //   PRECIO2: precio2,
+  //   ACTUALIZADO: new Date().toLocaleDateString()
+  // };
 
   // Agregar y actualizar
   datos.push(nuevoArticulo);
@@ -1582,44 +1656,57 @@ function comprobarCambiosDatos() {
   try {
     tablaTieneDatos();
     if (conDatos === 'si') {
-      console.log('tiene datos');
+      //console.log('tiene datos');
+      //console.log(datos);
     // } else if (conDatos === 'no') {
     //   console.log('no tiene datos');
     // }
       // Detectar si estamos usando JSON o CSV
       const usandoJSON = window.location.href.startsWith('https://') || window.location.href.startsWith('http://');
-      const storageKey = usandoJSON ? 'jsonData' : 'csvData';
+      const storageKey = usandoJSON ? 'csvData' : 'csvData';
       const guardado = localStorage.getItem(storageKey);
 
       if (!guardado) return; // No hay base previa, salir sin tocar nada
 
       let datosGuardados;
       let datosActuales = datos; // Asumimos que "datos" tiene la tabla actual en memoria
+      
 
       // 🔄 Parsear según el modo
-      if (usandoJSON) {
-        datosGuardados = JSON.parse(guardado);
-      } else {
+      //if (usandoJSON) {
+        //datosGuardados = JSON.parse(guardado);
+      //} else {
         // Si es CSV, convertimos la cadena guardada a texto para comparar
         const separador = ';';
         const columnas = headers;
         const lineas = [columnas.join(separador)];
 
+        // datosActuales.forEach(obj => {
+        //   const fila = columnas.map(c => (obj[c] || '').toString().replace(/"/g, '')).join(separador);
+        //   const fila = columnas.map(c => {
+        //     const valor = (obj[c] || '').toString().replace(/"/g, '');
+        //   lineas.push(fila);
+        // });
         datosActuales.forEach(obj => {
-          const fila = columnas.map(c => (obj[c] || '').toString().replace(/"/g, '')).join(separador);
+          const fila = columnas.map(c => {
+            const valor = (obj[c] || '').toString().replace(/"/g, '');
+            return `${valor}`;
+          }).join(separador);
           lineas.push(fila);
         });
         datosGuardados = guardado.trim();
-        datosActuales = lineas.join('\n').trim();
-      }
+        //datosActuales = lineas.join('\n').trim();
+        datosActuales = lineas.join('\n');
+        
+      //}
 
       // ⚖️ Comparar
       let hayCambios = false;
 
-      if (usandoJSON) {
+      //if (usandoJSON) {
         // Comparar objetos JSON
-        hayCambios = JSON.stringify(datosGuardados) !== JSON.stringify(datosActuales);
-      } else {
+        //hayCambios = JSON.stringify(datosGuardados) !== JSON.stringify(datosActuales);
+      //} else {
         // Comparar texto CSV
         hayCambios = datosGuardados !== datosActuales;
         // if (tablaTieneDatos === 'tiene') {
@@ -1627,26 +1714,26 @@ function comprobarCambiosDatos() {
         // } else {
         //   console.log('acaaaaa 1612');
         // }
-      }
+      //}
 
       // 💾 Guardar si hubo cambios
       if (hayCambios) {
-        if (usandoJSON) {
-          localStorage.setItem(storageKey, JSON.stringify(datosActuales));
-        } else {
+        //if (usandoJSON) {
+          //localStorage.setItem(storageKey, JSON.stringify(datosActuales));
+        //} else {
           localStorage.setItem(storageKey, datosActuales);
           // if (tablaTieneDatos === 'tiene') {
           //   localStorage.setItem(storageKey, datosActuales);
           // } else {
           //   localStorage.setItem(storageKey, datosGuardados);
           // }
-        }
+        //}
 
         mostrarMensajeOK(
           `${Icons.advertencia} Se detectaron cambios en los datos de LocalStorage.<br>${Icons.guardar} Cambios guardados automáticamente`,
           "compruebaCambios"
         );
-        console.log('acaaaaa 1626');
+        //console.log('acaaaaa 1626');
 
         detenerCSVTemporizador();
       }
@@ -2241,7 +2328,7 @@ setTimeout(() => {
   let preciosActualesDiferentes;
   let preciosDiferentes;
   let fechasDiferentes;
-  if (esLocal() || !esLocal()) {
+  //if (esLocal() || !esLocal()) {
     const lineas = csvDataOriginal.split(/\r?\n/).filter(l => l.trim() !== '');
     cantidadOriginal = lineas.length - 1;
     const cambios = compararFechasYPreciosCSV(csvDataOriginal, csvData);
@@ -2249,18 +2336,20 @@ setTimeout(() => {
     fechasActualesDiferentes = cambios.map(c => c.fechaActual);
     preciosOriginalesDiferentes = cambios.map(c => c.precioOriginal);
     preciosActualesDiferentes = cambios.map(c => c.precioActual);
-  } else {
-    const datosActuales = localStorage.getItem("jsonData");
-    const datosOriginales = localStorage.getItem("jsonOriginal");
-    cantidadOriginal = JSON.parse(datosOriginales).length;
-    const cambios = compararFechasJSON(JSON.parse(datosOriginales), JSON.parse(datosActuales));
-    fechasOriginalesDiferentes = cambios.map(c => c.fechaOriginal);
-    fechasActualesDiferentes = cambios.map(c => c.fechaActual);
-    preciosOriginalesDiferentes = cambios.map(c => c.precioOriginal);
-    preciosActualesDiferentes = cambios.map(c => c.precioActual);
-  }
+    //console.log(cambios);
+  // } else {
+  //   const datosActuales = localStorage.getItem("jsonData");
+  //   const datosOriginales = localStorage.getItem("jsonOriginal");
+  //   cantidadOriginal = JSON.parse(datosOriginales).length;
+  //   const cambios = compararFechasJSON(JSON.parse(datosOriginales), JSON.parse(datosActuales));
+  //   fechasOriginalesDiferentes = cambios.map(c => c.fechaOriginal);
+  //   fechasActualesDiferentes = cambios.map(c => c.fechaActual);
+  //   preciosOriginalesDiferentes = cambios.map(c => c.precioOriginal);
+  //   preciosActualesDiferentes = cambios.map(c => c.precioActual);
+  // }
   preciosDiferentes = preciosActualesDiferentes.length;
   fechasDiferentes = fechasActualesDiferentes.length;
+  //console.log(cantidadOriginal);
   if (preciosActualesDiferentes.length > 0 || fechasActualesDiferentes.length > 0 || cantidadActual > cantidadOriginal) {
       if (esLocal() || !esLocal()) {
         mostrarMensajeOK(`${Icons.advertencia} Los datos almacenados en: ${archivoOriginal} procedente del archivo original: ${Icons.csv}${nombre}<br>Son más antiguos que los datos de: ${csvDatos} almacenados en LocalStorage`, 'datosOriginales');
@@ -2386,17 +2475,20 @@ document.querySelector("#tabla tbody").addEventListener("click", e => {
   if (!fila) return;
 
   indiceOriginal = parseInt(fila.dataset.index, 10); // toma el índice original
-  console.log("✅ Índice original seleccionado:", indiceOriginal);
+  //console.log("✅ Índice original seleccionado:", indiceOriginal - 1);
 
   // Podés llamar a otra función si querés hacer algo más:
-  manejarSeleccionArticulo(indiceOriginal);
+  manejarSeleccionArticulo(indiceOriginal - 1);
 });
 
 function manejarSeleccionArticulo(idx) {
   const articulo = datos[idx];
   if (!articulo) return;
 
-  console.log("Artículo seleccionado:", articulo.PRODUCTO);
+  //console.log("Artículo seleccionado:", articulo.PRODUCTO);
+  articuloSeleccionado = articulo.PRODUCTO;
+  //btnAbrirModalEditar.click();
+  abrirModalEditar(articuloSeleccionado);
   // acá podés abrir un modal, editar, eliminar, etc.
 }
 
@@ -2416,7 +2508,6 @@ btnGuardarCambios.addEventListener("click", () => {
   const indice = datos.findIndex(a => a.ID == articuloSeleccionado.ID);
   let precio2 = precio2Editar.value.trim();
   if (!precio2) precio2 = '0';
-  console.log(indice);
   if (precio1Editar.value.trim() === "") {
     mostrarMensajeOK("⚠️ Ambos campos de precio deben estar completos.", "modalEditar");
     return;
