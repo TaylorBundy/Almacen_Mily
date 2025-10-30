@@ -108,6 +108,7 @@ th {
 }
 tr:nth-child(even) {
     background-color: #f9f9f9;
+    /* background-color: #fbd0a994; */
 }
 /* td[contenteditable="true"], .codigoN {
     background-color: #fff8d3;
@@ -206,7 +207,25 @@ tbody tr:hover {
     box-shadow: 0 0 15px #000;
 }
 #buscarEliminar, #buscarEditar {
+    /* width: 100%; */
+    visibility: collapse;
+    display: none;
+}
+/* #buscarEditar1, #buscarEliminar1 {
+    visibility: collapse;
+    display: none;
+} */
+#buscarEditar1, #buscarEliminar1 {
+    display: block;
+    visibility: visible;
     width: 100%;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow: hidden;
+    resize: none;
+    padding: 8px;
+    margin: 5px;
+    border-radius: 5px;
 }
 .contadorCoincidencias {
     font-size: 13px;
@@ -227,12 +246,14 @@ tbody tr:hover {
 .buscarContainer {
     display: flex;
     width: 80%;
+    align-items: center;
 }
 .buscarContainer p {
     margin: 0;
 }
 #buscarAnterior, #btnAnterior, #btnAnteriorEditar, #btnSiguiente, #btnSiguienteEditar, #buscarSiguiente {
     padding: 0 10px;
+    height: 30px;
 }
 #modalCargar {
     position: fixed;
@@ -466,7 +487,8 @@ tbody tr:hover {
         top: 4px;
     }
     .PorcentajeCosto #porcentajeCostoInput {
-        padding: 2px 5px;
+        /* padding: 2px 5px; */
+        padding: 5px;
     }
     #btnAbrirModal, #btnAbrirModalEliminar, #btnAbrirModalEditar, #btnGuardar, #btnCargar {
         width: 110px;
@@ -489,6 +511,7 @@ tbody tr:hover {
         display: flex;
         align-items: center;
         font-size: 10px;
+        margin: 8px 0;
     }
     #porcentajeInput, #searchInput, #porcentajeCostoInput {
         position: relative;
@@ -529,12 +552,19 @@ tbody tr:hover {
         border: 1px solid #ccc;
         border-radius: 8px;
         padding: 5px;
+        background-color: #fbd0a9;
       }
+      tr:nth-child(even) {
+        /* background-color: #f9f9f9; */
+        background-color: #fbd0a994;
+    }
       td {
         display: flex;
         justify-content: space-between;
         padding: 6px 8px;
         width: auto;
+        border: 1px solid #0000009c;
+        border-radius: 5px;
       }
       .indice, .id, .fecha {
         width: auto;
@@ -551,6 +581,25 @@ tbody tr:hover {
         width: 80%;
         margin: 0;
         padding: 5px;
+        border-radius: 5px;
+    }
+    .indice {
+        display: none;
+    }
+    #buscarEliminar, #buscarEditar {
+        visibility: collapse;
+        display: none;
+    }
+    #buscarEditar1, #buscarEliminar1 {
+        display: block;
+        visibility: visible;
+        width: 100%;
+        word-wrap: break-word;
+        word-break: break-all;
+        overflow: hidden;
+        resize: none;
+        padding: 8px;
+        margin: 5px;
         border-radius: 5px;
     }
 }

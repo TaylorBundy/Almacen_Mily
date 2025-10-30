@@ -118,6 +118,7 @@
     <label class="labelModal">Buscar por ID o NOMBRE:</label>
     <div class="buscarContainer">
       <input type="text" id="buscarEditar" placeholder="Ej: 102 o Pan Lactal" onkeyup="buscarArticuloEditar()">
+      <textarea id="buscarEditar1" rows="1" cols="10" wrap="hard" placeholder="Ej: 102 o Pan Lactal" onkeyup="buscarArticuloEditar()"></textarea>
       <button id="btnAnteriorEditar" title="" onclick="mostrarAnteriorCoincidencia2()" onmouseover="mostrarTooltip(event, TitulosList.btnAnterior); event.stopPropagation();"
       onmouseout="ocultarTooltip(2000)"><img id="btnImageSiguiente" src="icons/atras.avif"></button>
       <button id="btnSiguienteEditar" title="" onclick="mostrarSiguienteCoincidencia2()" onmouseover="mostrarTooltip(event, TitulosList.btnSiguiente); event.stopPropagation();"
@@ -181,6 +182,7 @@
             placeholder="Ej: 102 o Pan Lactal"
             onmouseover="mostrarTooltip(event, TitulosList.searchInput); event.stopPropagation();"
             onmouseout="ocultarTooltip(2000)">
+            <textarea id="buscarEliminar1" rows="1" cols="10" wrap="hard" placeholder="Ej: 102 o Pan Lactal" onkeyup="buscarArticuloEliminar()"></textarea>
       <button id="btnAnterior" onclick="mostrarAnteriorCoincidencia()"
             onmouseover="mostrarTooltip(event, TitulosList.btnAnterior); event.stopPropagation();"
             onmouseout="ocultarTooltip(2000)">
@@ -239,12 +241,14 @@
     <h3>📂 Seleccionar archivo</h3>
     <p>Seleccione el archivo "CSV" o "JSON" que desea cargar.</p>
     <button class="boton" id="btnAceptarCSV">CSV</button>
-    <button class="boton" id="btnAceptarJSON">JSON</button>
+    <button class="boton" id="btnAceptarGOOGLE">Aceptar</button>
+    <button class="boton" id="btnAceptarJSON" disabled="true" style="display: none; visibility: collapse;">JSON</button>
     <button class="boton" id="btnCancelarGithub" style="background-color:#6c757d;">Cancelar</button>
   </div>
 </div>
 <script src="script.js"></script>
 <script src="cargar_csv.js"></script>
+<script src="cargar_csv_drive.js"></script>
 <script src="cargar_json.js"></script>
 <script>
   // Ejecutar al cargar la página
@@ -253,6 +257,7 @@
   const boton = document.querySelector("#btnCargar");
   const btnAceptar = document.getElementById("btnAceptar");
   const btnAceptarCSV = document.getElementById("btnAceptarCSV");
+  const btnAceptarGoogle = document.getElementById("btnAceptarGOOGLE");
   const btnAceptarJSON = document.getElementById("btnAceptarJSON");
   const btnCancelar = document.getElementById("btnCancelar");
   const btnCancelarGitHub = document.getElementById("btnCancelarGithub");
@@ -464,6 +469,10 @@
   btnAceptarCSV.addEventListener("click", () => {
     modalCargarGitHub.style.display = "none"; // Cierra el modal
     cargarCSVdesdeGitHub();
+  });
+  btnAceptarGoogle.addEventListener("click", () => {
+    modalCargarGitHub.style.display = "none"; // Cierra el modal
+    cargarCSVdesdeDrive();
   });
   // Cuando el usuario hace clic en "Cargar JSON"
   // en modal cargar archivo desde GitHub

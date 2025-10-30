@@ -8,6 +8,7 @@ let cantidadOriginal = null;
 let esCSV;
 let esJSON;
 let conDatos;
+let modalActivo;
 const items = document.getElementById('contador');
 const inputSearch = document.getElementById('searchInput');
 const imgSearch = document.querySelector('.searching');
@@ -17,7 +18,9 @@ const btnAbrirModalEliminar = document.getElementById('btnAbrirModalEliminar');
 const btnLimpiar = document.getElementById('btnLimpiar');
 const btnAgregarArticulo = document.getElementById('btnAgregarArticulo');
 const buscarEliminar = document.getElementById('buscarEliminar');
+const buscarEliminarTextArea = document.getElementById('buscarEliminar1');
 const buscarEditar = document.getElementById('buscarEditar');
+const buscarEditarTextArea = document.getElementById('buscarEditar1');
 const btnGuardar = document.getElementById('btnGuardar');
 const nuevoNombre = document.getElementById('nuevoNombre');
 const precio1 = document.getElementById('nuevoPrecio1');
@@ -346,6 +349,37 @@ if (!plataforma.includes('Android')) {
       mostrarTabla(datos);
     }, 1000);
   })
+  // buscarEditarTextArea.addEventListener('input', function() {
+  //   setTimeout(() => {
+  //     if (this.value === '') {
+  //       coincidencias = [];
+  //       articuloSeleccionado = null;
+  //       indiceActual = 0;
+  //       actualizarVistaCoincidencia(modalEditar);
+  //       //limpiarInputs('#modalEditar');
+  //     } else {
+  //       articuloSeleccionado = this.value;
+  //     }
+  //     //recalcularPrecios();
+  //     //mostrarTabla(datos);
+  //   }, 1000);
+  // })
+  document.querySelectorAll('#buscarEditar1, #buscarEliminar1')
+  .forEach(el => {
+    el.addEventListener('input', function() {
+      setTimeout(() => {
+        if (this.value === '') {
+          coincidencias = [];
+          articuloSeleccionado = null;
+          indiceActual = 0;
+          modalActivo = this.parentElement.parentElement.parentElement;
+          actualizarVistaCoincidencia(modalActivo);
+        } else {
+          articuloSeleccionado = this.value;
+        }
+      }, 1000);
+    });
+  });
 } else if (plataforma.includes('Android')) {
   inputPorcentajeCosto.addEventListener('change', function() {
     //setTimeout(() => {
@@ -369,6 +403,22 @@ if (!plataforma.includes('Android')) {
       mostrarTabla(datos);
     //}, 1000);
   })
+  document.querySelectorAll('#buscarEditar1, #buscarEliminar1')
+  .forEach(el => {
+    el.addEventListener('input', function() {
+      setTimeout(() => {
+        if (this.value === '') {
+          coincidencias = [];
+          articuloSeleccionado = null;
+          indiceActual = 0;
+          modalActivo = this.parentElement.parentElement.parentElement;
+          actualizarVistaCoincidencia(modalActivo);
+        } else {
+          articuloSeleccionado = this.value;
+        }
+      }, 1000);
+    });
+  });
 }
 // mostrar precio COSTO cuando checkeamos el chekbox
 // porcentajeCosto establecido por defecto en %60
@@ -974,14 +1024,30 @@ function cerrarModal() {
 function abrirModalEditar(articulo = null) {
   ocultarTooltip(0);
   document.getElementById("modalEditar").style.display = "flex";
-  buscarEditar.focus();
   setTimeout(() => {
-    buscarEditar.value = articulo;
+    buscarEditarTextArea.focus();
+    buscarEditarTextArea.value = articulo;
+    if (!plataforma.includes('Android')) {
+      //buscarEditar.focus();
+      //buscarEditar.value = articulo;
+      //buscarEditarTextArea.value = articulo;
+      const len = buscarEditarTextArea.value.length;
+      // Ejemplo simple: 1 fila cada 30 caracteres
+      const filas = Math.ceil(len / 35);
+      buscarEditarTextArea.rows = Math.max(1, filas); // mínimo 2 filas
+    } else {
+      //buscarEditarTextArea.focus();
+      //buscarEditarTextArea.value = articulo;
+      const len = buscarEditarTextArea.value.length;
+      // Ejemplo simple: 1 fila cada 30 caracteres
+      const filas = Math.ceil(len / 15);
+      buscarEditarTextArea.rows = Math.max(1, filas); // mínimo 2 filas
+    }
     if (articulo !== null) {
       buscarArticuloEditar();
     }
   }, 500);
-  if (buscarEditar.value === '') {
+  if (buscarEditar.value === '' || buscarEditarTextArea.value === '') {
     precio1Editar.disabled = true;
     precio2Editar.disabled = true;
   }
@@ -989,6 +1055,7 @@ function abrirModalEditar(articulo = null) {
 }
 // ❌ Cerrar modal editar articulo
 function cerrarModalEditar() {
+  ocultarTooltip(0);
   document.getElementById("modalEditar").style.display = "none";
   coincidencias = [];
   articuloSeleccionado = null;
@@ -997,11 +1064,25 @@ function cerrarModalEditar() {
 }
 // 🚪 Abrir/Cerrar modal eliminar articulo
 function abrirModalEliminar() {
+  ocultarTooltip(0);
   origen = "modalEliminar";
   segundosRestantes = 10;
   modalEliminar.style.display = "flex";
   contadorCerrar.style.display = "none"; // oculto al abrir
-  buscarEliminar.focus();
+  buscarEliminarTextArea.focus();
+  if (!plataforma.includes('Android')) {
+    //buscarEliminar.focus();
+    const len = buscarEliminarTextArea.value.length;
+      // Ejemplo simple: 1 fila cada 30 caracteres
+    const filas = Math.ceil(len / 35);
+    buscarEliminarTextArea.rows = Math.max(1, filas); // mínimo 2 filas
+  } else {
+    //buscarEliminarTextArea.focus();
+    const len = buscarEliminarTextArea.value.length;
+      // Ejemplo simple: 1 fila cada 30 caracteres
+    const filas = Math.ceil(len / 15);
+    buscarEliminarTextArea.rows = Math.max(1, filas); // mínimo 2 filas
+  }
   mensaje = `${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!\nIngrese un valor sobre el campo de busqueda, o haga click en cualquier lugar del formulario para Cancelar el cierre.!`;
 
   // Cancelar temporizadores previos si existían
@@ -1016,7 +1097,12 @@ function abrirModalEliminar() {
   eventosActividad.forEach(evento => {
     modalEliminar.addEventListener(evento, mantenerModalActivo);
   });
-  buscarEliminar.addEventListener('input', cancelarContador);
+  if (!plataforma.includes('Android')) {
+    //buscarEliminar.addEventListener('input', cancelarContador);
+    buscarEliminarTextArea.addEventListener('input', cancelarContador);
+  } else {
+    buscarEliminarTextArea.addEventListener('input', cancelarContador);
+  }
   modalEliminar.querySelectorAll('div').forEach(div => {
     div.addEventListener('click', cancelarContador);
   });
@@ -1024,7 +1110,7 @@ function abrirModalEliminar() {
   // Configurar el cierre automático
   timeoutCerrarModal = setTimeout(() => {
     if (modalEliminar.style.display === "flex" && !usuarioActivoEnModal) {
-      if (!buscarEliminar.value) {
+      if (!buscarEliminar.value || !buscarEliminarTextArea.value) {
         contadorCerrar.style.display = "block";
         contadorCerrar.textContent = mensaje;//`${Icons.advertencia} El formulario: "${modalEliminar.ariaLabel}"\nSe cerrará en: ${Icons.reloj} ${segundosRestantes} segundos por inactividad.!`;
         // 🔹 Contador regresivo cada segundo
@@ -1051,6 +1137,7 @@ function mantenerModalActivo() {
 }
 // ❌ Cerrar modal eliminar articulo
 function cerrarModalEliminar() {
+  ocultarTooltip(0);
   //document.getElementById("modalEliminar")
   modalEliminar.style.display = "none";
   coincidencias = [];
@@ -1273,8 +1360,14 @@ function agregarArticulo() {
   }
 }
 // 🔍 Buscar artículo para editar
+let busqueda;
 function buscarArticuloEditar() {
-  const busqueda = document.getElementById("buscarEditar").value.toLowerCase().trim();
+  if (!plataforma.includes('Android')) {
+    //busqueda = document.getElementById("buscarEditar").value.toLowerCase().trim();
+    busqueda = document.getElementById("buscarEditar1").value.toLowerCase().trim();
+  } else {
+    busqueda = document.getElementById("buscarEditar1").value.toLowerCase().trim();
+  }
 
   coincidencias = datos.filter(obj =>
     obj.ID?.toString().includes(busqueda) ||
@@ -1292,7 +1385,12 @@ function buscarArticuloEditar() {
 }
 // 🔍 Buscar artículo para eliminar
 function buscarArticuloEliminar() {
-  const busqueda = document.getElementById("buscarEliminar").value.toLowerCase().trim();
+  if (!plataforma.includes('Android')) {
+    //busqueda = document.getElementById("buscarEliminar").value.toLowerCase().trim();
+    busqueda = document.getElementById("buscarEliminar1").value.toLowerCase().trim();
+  } else {
+    busqueda = document.getElementById("buscarEliminar1").value.toLowerCase().trim();
+  }
 
   coincidencias = datos.filter(obj =>
     obj.ID?.toString().includes(busqueda) ||
@@ -1441,7 +1539,7 @@ function actualizarVistaCoincidencia(modalActivo) {
         btnEliminar.style.cursor = btnSiguiente.style.cursor = btnAnterior.style.cursor = 'not-allowed';
         numCoin2 = document.querySelector('#contadorTotal');
       } else if (esEditar) {
-        btnGuardarEditar.disabled = btnSiguienteEditar.disabled = btnAnteriorEditar.disabled = true;
+        btnGuardarEditar.disabled = btnSiguienteEditar.disabled = btnAnteriorEditar.disabled = precio1Editar.disabled = precio2Editar.disabled = true;
         btnGuardarEditar.style.cursor = btnSiguienteEditar.style.cursor = btnAnteriorEditar.style.cursor = 'not-allowed';
         numCoin2 = document.querySelector('#contadorEditarTotal');
       }
